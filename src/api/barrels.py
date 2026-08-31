@@ -62,12 +62,10 @@ def post_deliver_barrels(barrels_delivered: List[Barrel], order_id: int):
 
     with db.engine.begin() as connection:
         connection.execute(
-            sqlalchemy.text(
-                """
+            sqlalchemy.text("""
                 UPDATE global_inventory SET 
                 gold = gold - :gold_paid
-                """
-            ),
+                """),
             [{"gold_paid": delivery.gold_paid}],
         )
 
@@ -111,24 +109,22 @@ def get_wholesale_purchase_plan(wholesale_catalog: List[Barrel]):
     print(f"barrel catalog: {wholesale_catalog}")
 
     with db.engine.begin() as connection:
-        row = connection.execute(
-            sqlalchemy.text(
-                """
-                SELECT gold
+        row = connection.execute(sqlalchemy.text("""
+                SELECT gold, red_ml, green_ml, blue_ml
                 FROM global_inventory
-                """
-            )
-        ).one()
+                """)).one()
 
         gold = row.gold
+        red_ml = row.red_ml
+        green_ml = row.green_ml
+        blue_ml = row.blue_ml
 
-    # TODO: fill in values correctly based on what is in your database
     return create_barrel_plan(
         gold=gold,
         max_barrel_capacity=10000,
-        current_red_ml=0,
-        current_green_ml=0,
-        current_blue_ml=0,
-        current_dark_ml=0,
+        current_red_ml=red_ml,
+        current_green_ml=green_ml,
+        current_blue_ml=blue_ml,
+        current_dark_ml=0,  # TODO: figure out dark potions
         wholesale_catalog=wholesale_catalog,
     )

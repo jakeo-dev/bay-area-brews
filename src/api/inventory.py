@@ -33,14 +33,10 @@ def get_inventory():
     """
 
     with db.engine.begin() as connection:
-        row = connection.execute(
-            sqlalchemy.text(
-                """
+        row = connection.execute(sqlalchemy.text("""
                 SELECT gold
                 FROM global_inventory
-                """
-            )
-        ).one()
+                """)).one()
 
         gold = row.gold
 

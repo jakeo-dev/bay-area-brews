@@ -140,24 +140,18 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     total_gold_paid = total_potions_bought * 50  # Assuming each potion costs 50 gold
 
     with db.engine.begin() as connection:
-        row = connection.execute(
-            sqlalchemy.text(
-                """
+        row = connection.execute(sqlalchemy.text("""
                 SELECT gold FROM global_inventory
-                """
-            )
-        ).one()
+                """)).one()
 
         gold = row.gold
         gold += total_gold_paid
 
         connection.execute(
-            sqlalchemy.text(
-                """
+            sqlalchemy.text("""
                 UPDATE global_inventory SET 
                 gold = :total_gold
-                """
-            ),
+                """),
             [{"total_gold": gold}],
         )
     # TODO: Deduct the right potions from inventory to the shop
