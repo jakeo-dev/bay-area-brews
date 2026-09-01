@@ -59,6 +59,18 @@ def post_deliver_barrels(barrels_delivered: List[Barrel], order_id: int):
     """
     print(f"barrels delivered: {barrels_delivered} order_id: {order_id}")
 
+    red_ml_delivered = 0
+    green_ml_delivered = 0
+    blue_ml_delivered = 0
+
+    for barrel in barrels_delivered:
+        if barrel.potion_type[0] == 1:
+            red_ml_delivered += barrel.ml_per_barrel * barrel.quantity
+        if barrel.potion_type[1] == 1:
+            green_ml_delivered += barrel.ml_per_barrel * barrel.quantity
+        if barrel.potion_type[2] == 1:
+            blue_ml_delivered += barrel.ml_per_barrel * barrel.quantity
+
     delivery = calculate_barrel_summary(barrels_delivered)
 
     with db.engine.begin() as connection:
@@ -68,6 +80,20 @@ def post_deliver_barrels(barrels_delivered: List[Barrel], order_id: int):
                 gold = gold - :gold_paid
                 """),
             [{"gold_paid": delivery.gold_paid}],
+        )
+
+        connection.execute(
+            sqlalchemy.text("""
+                    UPDATE global_inventory
+                    SET red_ml = red_ml + :r
+                    SET green_ml = green_ml + :g
+                    SET blue_ml = blue_ml + :b
+                    """),
+            {
+                "r": red_ml_delivered,
+                "g": green_ml_delivered,
+                "b": blue_ml_delivered,
+            },
         )
 
     pass
