@@ -85,12 +85,19 @@ def create_bottle_plan(
     maximum_potion_capacity: int,
     current_potion_inventory: List[PotionMixes],
 ) -> List[PotionMixes]:
-    # TODO: Create a real bottle plan logic
     return [
         PotionMixes(
             potion_type=[100, 0, 0, 0],
-            quantity=5,
-        )
+            quantity=int(red_ml / 100),
+        ),
+        PotionMixes(
+            potion_type=[0, 100, 0, 0],
+            quantity=int(green_ml / 100),
+        ),
+        PotionMixes(
+            potion_type=[0, 0, 100, 0],
+            quantity=int(blue_ml / 100),
+        ),
     ]
 
 
