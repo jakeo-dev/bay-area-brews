@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field, field_validator
 from typing import List
@@ -56,25 +57,22 @@ def post_deliver_bottles(potions_delivered: List[PotionMixes], order_id: int):
         connection.execute(
             sqlalchemy.text("""
                     UPDATE global_inventory
-                    SET red_potions = red_potions + :r
-                    SET green_potions = green_potions + :g
-                    SET blue_potions = blue_potions + :b
+                    SET red_potions = red_potions + :red_potions
+                    SET green_potions = green_potions + :green_potions
+                    SET blue_potions = blue_potions + :blue_potions
+                    SET red_ml = red_ml - :red_ml
+                    SET green_ml = green_ml - :green_ml
+                    SET blue_ml = blue_ml - :blue_ml
                     """),
             {
-                "r": red_potions_delivered,
-                "g": green_potions_delivered,
-                "b": blue_potions_delivered,
+                "red_potions": red_potions_delivered,
+                "green_potions": green_potions_delivered,
+                "blue_potions": blue_potions_delivered,
+                "red_ml": red_potions_delivered * 100,
+                "green_ml": green_potions_delivered * 100,
+                "blue_ml": blue_potions_delivered * 100,
             },
         )
-
-    with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("""
-                    UPDATE global_inventory
-                    SET red_ml = red_ml - 100
-                    SET green_ml = green_ml - 100
-                    SET blue_ml = blue_ml - 100
-                    """))
-    pass
 
 
 def create_bottle_plan(
