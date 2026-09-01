@@ -136,7 +136,21 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     if cart_id not in carts:
         raise HTTPException(status_code=404, detail="Cart not found")
 
-    total_potions_bought = sum(carts[cart_id].values())
+    cart = carts[cart_id]
+
+    red_potions_bought = 0
+    green_potions_bought = 0
+    blue_potions_bought = 0
+
+    for item_sku, quantity in cart.items():
+        if item_sku == "red_potion":
+            red_potions_bought += quantity
+        elif item_sku == "green_potion":
+            green_potions_bought += quantity
+        elif item_sku == "blue_potion":
+            blue_potions_bought += quantity
+
+    total_potions_bought = sum(cart.values())
     total_gold_paid = total_potions_bought * 50  # Assuming each potion costs 50 gold
 
     with db.engine.begin() as connection:
@@ -153,6 +167,20 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 gold = :total_gold
                 """),
             [{"total_gold": gold}],
+        )
+
+        connection.execute(
+            sqlalchemy.text("""
+                    UPDATE global_inventory
+                    SET red_potions = red_potions - :r
+                    SET green_potions = green_potions - :g
+                    SET blue_potions = blue_potions - :b
+                    """),
+            {
+                "r": red_potions_bought,
+                "g": green_potions_bought,
+                "b": blue_potions_bought,
+            },
         )
     # TODO: Deduct the right potions from inventory to the shop
 
