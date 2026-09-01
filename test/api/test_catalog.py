@@ -1,4 +1,4 @@
-from src.api.catalog import CatalogItem, create_catalog
+from src.api.catalog import create_catalog
 
 
 def test_create_catalog() -> None:
