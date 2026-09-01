@@ -61,6 +61,10 @@ def test_buy_small_red_barrel_plan() -> None:
     current_green_ml = 1000
     current_blue_ml = 1000
     current_dark_ml = 1000
+    current_red_potions = 0
+    current_green_potions = 100
+    current_blue_potions = 100
+    random_color = "green"
 
     barrel_orders = create_barrel_plan(
         gold,
@@ -69,6 +73,10 @@ def test_buy_small_red_barrel_plan() -> None:
         current_green_ml,
         current_blue_ml,
         current_dark_ml,
+        current_red_potions,
+        current_green_potions,
+        current_blue_potions,
+        random_color,
         wholesale_catalog,
     )
 
@@ -104,12 +112,16 @@ def test_cant_afford_barrel_plan() -> None:
         ),
     ]
 
-    gold = 50
+    gold = 100
     max_barrel_capacity = 10000
     current_red_ml = 0
     current_green_ml = 1000
     current_blue_ml = 1000
     current_dark_ml = 1000
+    current_red_potions = 0
+    current_green_potions = 100
+    current_blue_potions = 100
+    random_color = "green"
 
     barrel_orders = create_barrel_plan(
         gold,
@@ -118,6 +130,10 @@ def test_cant_afford_barrel_plan() -> None:
         current_green_ml,
         current_blue_ml,
         current_dark_ml,
+        current_red_potions,
+        current_green_potions,
+        current_blue_potions,
+        random_color,
         wholesale_catalog,
     )
 
