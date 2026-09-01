@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import random
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field, field_validator
 from typing import List
@@ -79,22 +80,75 @@ def create_barrel_plan(
     current_green_ml: int,
     current_blue_ml: int,
     current_dark_ml: int,
+    current_red_potions: int,
+    current_green_potions: int,
+    current_blue_potions: int,
+    random_color: str,
     wholesale_catalog: List[Barrel],
 ) -> List[BarrelOrder]:
     print(
         f"gold: {gold}, max_barrel_capacity: {max_barrel_capacity}, current_red_ml: {current_red_ml}, current_green_ml: {current_green_ml}, current_blue_ml: {current_blue_ml}, current_dark_ml: {current_dark_ml}, wholesale_catalog: {wholesale_catalog}"
     )
 
-    # find cheapest red barrel
+    # find smallest red barrel
     red_barrel = min(
-        (barrel for barrel in wholesale_catalog if barrel.potion_type[0] == 1),
-        key=lambda b: b.price,
+        (
+            barrel
+            for barrel in wholesale_catalog
+            if barrel.potion_type[0] == 1 and "SMALL" in barrel.sku
+        ),
+        key=lambda b: b.ml_per_barrel,
         default=None,
     )
 
     # make sure we can afford it
-    if red_barrel and red_barrel.price <= gold:
+    if (
+        random_color == "red"
+        and current_red_potions < 5
+        and red_barrel
+        and red_barrel.price <= gold
+    ):
         return [BarrelOrder(sku=red_barrel.sku, quantity=1)]
+
+    # find smallest green barrel
+    green_barrel = min(
+        (
+            barrel
+            for barrel in wholesale_catalog
+            if barrel.potion_type[1] == 1 and "SMALL" in barrel.sku
+        ),
+        key=lambda b: b.ml_per_barrel,
+        default=None,
+    )
+
+    # make sure we can afford it
+    if (
+        random_color == "green"
+        and current_green_potions < 5
+        and green_barrel
+        and green_barrel.price <= gold
+    ):
+        return [BarrelOrder(sku=green_barrel.sku, quantity=1)]
+
+    # find smallest blue barrel
+    blue_barrel = min(
+        (
+            barrel
+            for barrel in wholesale_catalog
+            if barrel.potion_type[2] == 1 and "SMALL" in barrel.sku
+        ),
+        key=lambda b: b.ml_per_barrel,
+        default=None,
+    )
+
+    # make sure we can afford it
+    if (
+        random_color == "blue"
+        and current_blue_potions < 5
+        and blue_barrel
+        and blue_barrel.price <= gold
+    ):
+        return [BarrelOrder(sku=blue_barrel.sku, quantity=1)]
 
     # return an empty list if no affordable red barrel is found
     return []
@@ -108,23 +162,30 @@ def get_wholesale_purchase_plan(wholesale_catalog: List[Barrel]):
     """
     print(f"barrel catalog: {wholesale_catalog}")
 
+    num = random.randint(1, 3)
+    if num == 1:  # red
+        random_color = "red"
+    elif num == 2:  # green
+        random_color = "green"
+    else:  # blue
+        random_color = "blue"
+
     with db.engine.begin() as connection:
         row = connection.execute(sqlalchemy.text("""
-                SELECT gold, red_ml, green_ml, blue_ml
+                SELECT gold, red_ml, green_ml, blue_ml, red_potions, green_potions, blue_potions
                 FROM global_inventory
                 """)).one()
 
-        gold = row.gold
-        red_ml = row.red_ml
-        green_ml = row.green_ml
-        blue_ml = row.blue_ml
-
     return create_barrel_plan(
-        gold=gold,
+        gold=row.gold,
         max_barrel_capacity=10000,
-        current_red_ml=red_ml,
-        current_green_ml=green_ml,
-        current_blue_ml=blue_ml,
+        current_red_ml=row.red_ml,
+        current_green_ml=row.green_ml,
+        current_blue_ml=row.blue_ml,
+        current_red_potions=row.red_potions,
+        current_green_potions=row.green_potions,
+        current_blue_potions=row.blue_potions,
         current_dark_ml=0,  # TODO: figure out dark potions
+        random_color=random_color,
         wholesale_catalog=wholesale_catalog,
     )
