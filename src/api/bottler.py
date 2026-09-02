@@ -82,20 +82,32 @@ def create_bottle_plan(
     maximum_potion_capacity: int,
     current_potion_inventory: List[PotionMixes],
 ) -> List[PotionMixes]:
-    return [
-        PotionMixes(
-            potion_type=[100, 0, 0, 0],
-            quantity=int(red_ml / 100),
-        ),
-        PotionMixes(
-            potion_type=[0, 100, 0, 0],
-            quantity=int(green_ml / 100),
-        ),
-        PotionMixes(
-            potion_type=[0, 0, 100, 0],
-            quantity=int(blue_ml / 100),
-        ),
-    ]
+    potions_to_make = []
+
+    if red_ml >= 100:
+        potions_to_make.append(
+            PotionMixes(
+                potion_type=[100, 0, 0, 0],
+                quantity=red_ml // 100,
+            )
+        )
+    if green_ml >= 100:
+        potions_to_make.append(
+            PotionMixes(
+                potion_type=[0, 100, 0, 0],
+                quantity=green_ml // 100,
+            )
+        )
+    if blue_ml >= 100:
+        potions_to_make.append(
+            PotionMixes(
+                potion_type=[0, 0, 100, 0],
+                quantity=blue_ml // 100,
+            )
+        )
+
+    print(f"bottle plan {potions_to_make}")
+    return potions_to_make
 
 
 @router.post("/plan", response_model=List[PotionMixes])
