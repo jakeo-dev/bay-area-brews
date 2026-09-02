@@ -116,65 +116,53 @@ def create_barrel_plan(
         f"gold: {gold}, max_barrel_capacity: {max_barrel_capacity}, current_red_ml: {current_red_ml}, current_green_ml: {current_green_ml}, current_blue_ml: {current_blue_ml}, current_dark_ml: {current_dark_ml}, wholesale_catalog: {wholesale_catalog}"
     )
 
-    # find smallest red barrel
-    red_barrel = min(
-        (
-            barrel
-            for barrel in wholesale_catalog
-            if barrel.potion_type[0] == 1 and "SMALL" in barrel.sku
-        ),
-        key=lambda b: b.ml_per_barrel,
-        default=None,
-    )
+    # make sure we can afford it
+    if random_color == "red" and current_red_potions < 5:
+        # find smallest red barrel
+        red_barrel = min(
+            (
+                barrel
+                for barrel in wholesale_catalog
+                if barrel.potion_type[0] == 1 and "SMALL" in barrel.sku
+            ),
+            key=lambda b: b.ml_per_barrel,
+            default=None,
+        )
+        # return that barrel to purchase if it exists and have enough gold
+        if red_barrel and red_barrel.price <= gold:
+            return [BarrelOrder(sku=red_barrel.sku, quantity=1)]
 
     # make sure we can afford it
-    if (
-        random_color == "red"
-        and current_red_potions < 5
-        and red_barrel
-        and red_barrel.price <= gold
-    ):
-        return [BarrelOrder(sku=red_barrel.sku, quantity=1)]
-
-    # find smallest green barrel
-    green_barrel = min(
-        (
-            barrel
-            for barrel in wholesale_catalog
-            if barrel.potion_type[1] == 1 and "SMALL" in barrel.sku
-        ),
-        key=lambda b: b.ml_per_barrel,
-        default=None,
-    )
+    if random_color == "green" and current_green_potions < 5:
+        # find smallest green barrel
+        green_barrel = min(
+            (
+                barrel
+                for barrel in wholesale_catalog
+                if barrel.potion_type[1] == 1 and "SMALL" in barrel.sku
+            ),
+            key=lambda b: b.ml_per_barrel,
+            default=None,
+        )
+        # return that barrel to purchase if it exists and have enough gold
+        if green_barrel and green_barrel.price <= gold:
+            return [BarrelOrder(sku=green_barrel.sku, quantity=1)]
 
     # make sure we can afford it
-    if (
-        random_color == "green"
-        and current_green_potions < 5
-        and green_barrel
-        and green_barrel.price <= gold
-    ):
-        return [BarrelOrder(sku=green_barrel.sku, quantity=1)]
-
-    # find smallest blue barrel
-    blue_barrel = min(
-        (
-            barrel
-            for barrel in wholesale_catalog
-            if barrel.potion_type[2] == 1 and "SMALL" in barrel.sku
-        ),
-        key=lambda b: b.ml_per_barrel,
-        default=None,
-    )
-
-    # make sure we can afford it
-    if (
-        random_color == "blue"
-        and current_blue_potions < 5
-        and blue_barrel
-        and blue_barrel.price <= gold
-    ):
-        return [BarrelOrder(sku=blue_barrel.sku, quantity=1)]
+    if random_color == "blue" and current_blue_potions < 5:
+        # find smallest blue barrel
+        blue_barrel = min(
+            (
+                barrel
+                for barrel in wholesale_catalog
+                if barrel.potion_type[2] == 1 and "SMALL" in barrel.sku
+            ),
+            key=lambda b: b.ml_per_barrel,
+            default=None,
+        )
+        # return that barrel to purchase if it exists and have enough gold
+        if blue_barrel and blue_barrel.price <= gold:
+            return [BarrelOrder(sku=blue_barrel.sku, quantity=1)]
 
     # return an empty list if no affordable red barrel is found
     return []
