@@ -55,7 +55,7 @@ def post_deliver_bottles(potions_delivered: List[PotionMixes], order_id: int):
     with db.engine.begin() as connection:
         connection.execute(
             sqlalchemy.text("""
-                    UPDATE global_inventory,
+                    UPDATE global_inventory
                     SET red_potions = red_potions + :red_potions,
                         green_potions = green_potions + :green_potions,
                         blue_potions = blue_potions + :blue_potions,
