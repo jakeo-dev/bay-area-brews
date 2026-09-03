@@ -172,9 +172,9 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         connection.execute(
             sqlalchemy.text("""
                     UPDATE global_inventory
-                    SET red_potions = red_potions - :r
-                    SET green_potions = green_potions - :g
-                    SET blue_potions = blue_potions - :b
+                    SET red_potions = red_potions - :r,
+                        green_potions = green_potions - :g,
+                        blue_potions = blue_potions - :b
                     """),
             {
                 "r": red_potions_bought,

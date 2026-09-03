@@ -85,9 +85,9 @@ def post_deliver_barrels(barrels_delivered: List[Barrel], order_id: int):
         connection.execute(
             sqlalchemy.text("""
                     UPDATE global_inventory
-                    SET red_ml = red_ml + :r
-                    SET green_ml = green_ml + :g
-                    SET blue_ml = blue_ml + :b
+                    SET red_ml = red_ml + :r,
+                        green_ml = green_ml + :g,
+                        blue_ml = blue_ml + :b
                     """),
             {
                 "r": red_ml_delivered,
