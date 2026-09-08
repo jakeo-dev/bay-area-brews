@@ -34,15 +34,18 @@ def get_inventory():
 
     with db.engine.begin() as connection:
         row = connection.execute(sqlalchemy.text("""
-                SELECT gold, red_potions, green_potions, blue_potions, red_ml, green_ml, blue_ml
-                FROM global_inventory
-                """)).one()
+            SELECT gold, red_ml, green_ml, blue_ml, dark_ml
+            FROM global_inventory
+            """)).one()
+        potion_count = connection.execute(
+            sqlalchemy.text("SELECT COALESCE(SUM(number), 0) FROM potion_mixtures")
+        ).scalar_one()
 
         gold = row.gold
 
     return InventoryAudit(
-        number_of_potions=row.red_potions + row.green_potions + row.blue_potions,
-        ml_in_barrels=row.red_ml + row.green_ml + row.blue_ml,
+        number_of_potions=potion_count,
+        ml_in_barrels=row.red_ml + row.green_ml + row.blue_ml + row.dark_ml,
         gold=gold,
     )
 

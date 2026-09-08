@@ -138,49 +138,34 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
     cart = carts[cart_id]
 
-    red_potions_bought = 0
-    green_potions_bought = 0
-    blue_potions_bought = 0
-
-    for item_sku, quantity in cart.items():
-        if item_sku == "red_potion":
-            red_potions_bought += quantity
-        elif item_sku == "green_potion":
-            green_potions_bought += quantity
-        elif item_sku == "blue_potion":
-            blue_potions_bought += quantity
-
-    total_potions_bought = sum(cart.values())
-    total_gold_paid = total_potions_bought * 50  # Assuming each potion costs 50 gold
-
     with db.engine.begin() as connection:
-        row = connection.execute(sqlalchemy.text("""
-                SELECT gold FROM global_inventory
-                """)).one()
-
-        gold = row.gold
-        gold += total_gold_paid
-
-        connection.execute(
-            sqlalchemy.text("""
-                UPDATE global_inventory SET 
-                gold = :total_gold
+        total_potions_bought = 0
+        total_gold_paid = 0
+        for item_sku, quantity in cart.items():
+            row = connection.execute(
+                sqlalchemy.text("""
+                SELECT price, number FROM potion_mixtures WHERE sku = :sku
                 """),
-            [{"total_gold": gold}],
-        )
+                {"sku": item_sku},
+            ).one()
+            if row.number < quantity:
+                raise HTTPException(
+                    status_code=409, detail="Insufficient potion inventory"
+                )
+            connection.execute(
+                sqlalchemy.text("""
+                UPDATE potion_mixtures
+                SET number = number - :quantity
+                WHERE sku = :sku
+                """),
+                {"sku": item_sku, "quantity": quantity},
+            )
+            total_potions_bought += quantity
+            total_gold_paid += row.price * quantity
 
         connection.execute(
-            sqlalchemy.text("""
-                    UPDATE global_inventory
-                    SET red_potions = red_potions - :r,
-                        green_potions = green_potions - :g,
-                        blue_potions = blue_potions - :b
-                    """),
-            {
-                "r": red_potions_bought,
-                "g": green_potions_bought,
-                "b": blue_potions_bought,
-            },
+            sqlalchemy.text("UPDATE global_inventory SET gold = gold + :gold"),
+            {"gold": total_gold_paid},
         )
 
     return CheckoutResponse(

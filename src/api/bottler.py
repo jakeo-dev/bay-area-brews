@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field, field_validator
-from typing import List
+from typing import List, Sequence
 
 import sqlalchemy
 from src.api import auth
@@ -40,71 +40,59 @@ def post_deliver_bottles(potions_delivered: List[PotionMixes], order_id: int):
     """
     print(f"potions delivered: {potions_delivered} order_id: {order_id}")
 
-    red_potions_delivered = 0
-    green_potions_delivered = 0
-    blue_potions_delivered = 0
-
-    for potion in potions_delivered:
-        if potion.potion_type == [100, 0, 0, 0]:
-            red_potions_delivered += potion.quantity
-        if potion.potion_type == [0, 100, 0, 0]:
-            green_potions_delivered += potion.quantity
-        if potion.potion_type == [0, 0, 100, 0]:
-            blue_potions_delivered += potion.quantity
-
     with db.engine.begin() as connection:
-        connection.execute(
-            sqlalchemy.text("""
-                    UPDATE global_inventory
-                    SET red_potions = red_potions + :red_potions,
-                        green_potions = green_potions + :green_potions,
-                        blue_potions = blue_potions + :blue_potions,
-                        red_ml = red_ml - :red_ml,
-                        green_ml = green_ml - :green_ml,
-                        blue_ml = blue_ml - :blue_ml
+        for potion in potions_delivered:
+            amounts = potion.potion_type
+            mixture = connection.execute(
+                sqlalchemy.text("""
+                SELECT id FROM potion_mixtures
+                WHERE red_amount = :red AND green_amount = :green
+                  AND blue_amount = :blue AND dark_amount = :dark
+                """),
+                dict(zip(("red", "green", "blue", "dark"), amounts)),
+            ).one()
+
+            connection.execute(
+                sqlalchemy.text("""
+                    UPDATE potion_mixtures
+                    SET number = number + :quantity
+                    WHERE id = :id
                     """),
-            {
-                "red_potions": red_potions_delivered,
-                "green_potions": green_potions_delivered,
-                "blue_potions": blue_potions_delivered,
-                "red_ml": red_potions_delivered * 100,
-                "green_ml": green_potions_delivered * 100,
-                "blue_ml": blue_potions_delivered * 100,
-            },
-        )
+                {"quantity": potion.quantity, "id": mixture.id},
+            )
+
+            liquid_columns = ("red_ml", "green_ml", "blue_ml", "dark_ml")
+            updates = ", ".join(
+                f"{column} = {column} - :{column}" for column in liquid_columns
+            )
+            connection.execute(
+                sqlalchemy.text(f"UPDATE global_inventory SET {updates}"),
+                {
+                    column: amount * potion.quantity
+                    for column, amount in zip(liquid_columns, amounts)
+                },
+            )
 
 
 def create_bottle_plan(
-    red_ml: int,
-    green_ml: int,
-    blue_ml: int,
-    dark_ml: int,
+    available_liquids: Sequence[int],
+    potion_mixtures: Sequence[Sequence[int]],
     maximum_potion_capacity: int,
-    current_potion_inventory: List[PotionMixes],
 ) -> List[PotionMixes]:
     potions_to_make = []
-
-    if red_ml >= 100:
-        potions_to_make.append(
-            PotionMixes(
-                potion_type=[100, 0, 0, 0],
-                quantity=red_ml // 100,
+    remaining_capacity = maximum_potion_capacity
+    for potion_type in potion_mixtures:
+        if remaining_capacity <= 0:
+            break
+        possible = remaining_capacity
+        for available, amount in zip(available_liquids, potion_type):
+            if amount:
+                possible = min(possible, available // amount)
+        if possible > 0:
+            potions_to_make.append(
+                PotionMixes(potion_type=list(potion_type), quantity=possible)
             )
-        )
-    if green_ml >= 100:
-        potions_to_make.append(
-            PotionMixes(
-                potion_type=[0, 100, 0, 0],
-                quantity=green_ml // 100,
-            )
-        )
-    if blue_ml >= 100:
-        potions_to_make.append(
-            PotionMixes(
-                potion_type=[0, 0, 100, 0],
-                quantity=blue_ml // 100,
-            )
-        )
+            remaining_capacity -= possible
 
     print(f"bottle plan {potions_to_make}")
     return potions_to_make
@@ -120,21 +108,28 @@ def get_bottle_plan():
 
     with db.engine.begin() as connection:
         row = connection.execute(sqlalchemy.text("""
-                SELECT red_ml, green_ml, blue_ml
-                FROM global_inventory
-                """)).one()
+            SELECT red_ml, green_ml, blue_ml, dark_ml
+            FROM global_inventory
+            """)).one()
+        mixtures = connection.execute(sqlalchemy.text("""
+            SELECT red_amount, green_amount, blue_amount, dark_amount
+            FROM potion_mixtures
+            ORDER BY id
+            """)).all()
 
-    red_ml = row.red_ml
-    green_ml = row.green_ml
-    blue_ml = row.blue_ml
-
+    available_liquids = [row.red_ml, row.green_ml, row.blue_ml, row.dark_ml]
     return create_bottle_plan(
-        red_ml=red_ml,
-        green_ml=green_ml,
-        blue_ml=blue_ml,
-        dark_ml=0,  # TODO: figure out dark potions
+        available_liquids=available_liquids,
         maximum_potion_capacity=50,
-        current_potion_inventory=[],
+        potion_mixtures=[
+            [
+                mixture.red_amount,
+                mixture.green_amount,
+                mixture.blue_amount,
+                mixture.dark_amount,
+            ]
+            for mixture in mixtures
+        ],
     )
 
 
