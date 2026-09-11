@@ -35,18 +35,6 @@ def upgrade() -> None:
             CONSTRAINT ck_potion_mixtures_number_non_negative CHECK (number >= 0)
         )
     """))
-    op.execute(sa.text("""
-        INSERT INTO potion_mixtures
-            (sku, name, red_amount, green_amount, blue_amount, dark_amount, price, number)
-        SELECT 'RED_POTION_0', 'red potion', 100, 0, 0, 0, 50, red_potions FROM global_inventory
-        WHERE NOT EXISTS (SELECT 1 FROM potion_mixtures WHERE sku = 'RED_POTION_0')
-        UNION ALL
-        SELECT 'GREEN_POTION_0', 'green potion', 0, 100, 0, 0, 50, green_potions FROM global_inventory
-        WHERE NOT EXISTS (SELECT 1 FROM potion_mixtures WHERE sku = 'GREEN_POTION_0')
-        UNION ALL
-        SELECT 'BLUE_POTION_0', 'blue potion', 0, 0, 100, 0, 50, blue_potions FROM global_inventory
-        WHERE NOT EXISTS (SELECT 1 FROM potion_mixtures WHERE sku = 'BLUE_POTION_0')
-    """))
 
     op.execute(sa.text("""
         CREATE TABLE IF NOT EXISTS carts (
