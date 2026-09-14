@@ -99,6 +99,18 @@ def create_barrel_plan(
         f"gold: {gold}, max_barrel_capacity: {max_barrel_capacity}, current_liquids: {current_liquids}, wholesale_catalog: {wholesale_catalog}"
     )
 
+    current_plan = []
+
+    # try to get dark barrel if its in the catalog now
+    if current_liquids[target_component] < 1000:
+        barrel = min(
+            (barrel for barrel in wholesale_catalog if barrel.potion_type[3] == 1),
+            key=lambda barrel: barrel.ml_per_barrel,
+            default=None,
+        )
+        if barrel and barrel.price <= gold:
+            current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
+
     if current_liquids[target_component] < 1000:
         barrel = min(
             (
@@ -110,10 +122,10 @@ def create_barrel_plan(
             default=None,
         )
         if barrel and barrel.price <= gold:
-            return [BarrelOrder(sku=barrel.sku, quantity=1)]
+            current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
 
     # return an empty list if no affordable red barrel is found
-    return []
+    return current_plan
 
 
 @router.post("/plan", response_model=List[BarrelOrder])
@@ -124,8 +136,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: List[Barrel]):
     """
     print(f"barrel catalog: {wholesale_catalog}")
 
-    # randomly choose r, g, b, d
-    target_component = random.randint(0, 4)
+    # randomly choose red (0), green (1), blue (2)
+    target_component = random.randint(0, 2)
 
     with db.engine.begin() as connection:
         row = connection.execute(sqlalchemy.text("""
