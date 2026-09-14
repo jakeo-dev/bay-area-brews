@@ -81,18 +81,22 @@ def create_bottle_plan(
 ) -> List[PotionMixes]:
     potions_to_make = []
     remaining_capacity = maximum_potion_capacity
+
     for potion_type in potion_mixtures:
-        if remaining_capacity <= 0:
-            break
-        possible = remaining_capacity
-        for available, amount in zip(available_liquids, potion_type):
-            if amount:
-                possible = min(possible, available // amount)
-        if possible > 0:
-            potions_to_make.append(
-                PotionMixes(potion_type=list(potion_type), quantity=possible)
-            )
-            remaining_capacity -= possible
+        number = potion_type[4]
+        if number < 6:
+            if remaining_capacity <= 0:
+                break
+            possible = remaining_capacity
+
+            for available, amount in zip(available_liquids, potion_type):
+                if amount:
+                    possible = min(possible, available // amount)
+            if possible > 0:
+                potions_to_make.append(
+                    PotionMixes(potion_type=list(potion_type), quantity=possible)
+                )
+                remaining_capacity -= possible
 
     print(f"bottle plan {potions_to_make}")
     return potions_to_make
@@ -112,7 +116,7 @@ def get_bottle_plan():
             FROM global_inventory
             """)).one()
         mixtures = connection.execute(sqlalchemy.text("""
-            SELECT red_amount, green_amount, blue_amount, dark_amount
+            SELECT red_amount, green_amount, blue_amount, dark_amount, number
             FROM potion_mixtures
             ORDER BY id
             """)).all()
@@ -120,13 +124,14 @@ def get_bottle_plan():
     available_liquids = [row.red_ml, row.green_ml, row.blue_ml, row.dark_ml]
     return create_bottle_plan(
         available_liquids=available_liquids,
-        maximum_potion_capacity=50,
+        maximum_potion_capacity=54,
         potion_mixtures=[
             [
                 mixture.red_amount,
                 mixture.green_amount,
                 mixture.blue_amount,
                 mixture.dark_amount,
+                mixture.number,
             ]
             for mixture in mixtures
         ],

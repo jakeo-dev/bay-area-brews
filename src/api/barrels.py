@@ -124,7 +124,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: List[Barrel]):
     """
     print(f"barrel catalog: {wholesale_catalog}")
 
-    target_component = random.randint(0, 3)
+    # randomly choose r, g, b, d
+    target_component = random.randint(0, 4)
 
     with db.engine.begin() as connection:
         row = connection.execute(sqlalchemy.text("""
