@@ -53,6 +53,8 @@ def get_catalog() -> List[CatalogItem]:
                     FROM potion_mixtures
                     WHERE number > 0
                     ORDER BY id
+                    LIMIT 6
                     """)).all()
+        # do this smarter later, dont just limit 6
 
     return create_catalog(rows)
