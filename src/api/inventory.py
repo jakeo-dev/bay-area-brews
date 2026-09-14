@@ -12,7 +12,15 @@ router = APIRouter(
 
 
 class InventoryAudit(BaseModel):
-    number_of_potions: int
+    lemonade_number: int
+    water_number: int
+    cappuccino_number: int
+    hot_chocolate_number: int
+    grape_juice_number: int
+    red_potion_number: int
+    green_potion_number: int
+    blue_potion_number: int
+    dark_potion_number: int
     ml_in_barrels: int
     gold: int
 
@@ -33,20 +41,32 @@ def get_inventory():
     """
 
     with db.engine.begin() as connection:
-        row = connection.execute(sqlalchemy.text("""
+        inventory = connection.execute(sqlalchemy.text("""
             SELECT gold, red_ml, green_ml, blue_ml, dark_ml
             FROM global_inventory
             """)).one()
-        potion_count = connection.execute(
-            sqlalchemy.text("SELECT COALESCE(SUM(number), 0) FROM potion_mixtures")
-        ).scalar_one()
+        potion_rows = connection.execute(sqlalchemy.text("""
+            SELECT name, number
+            FROM potion_mixtures
+            """)).all()
 
-        gold = row.gold
+    potion_numbers = {row.name: row.number for row in potion_rows}
 
     return InventoryAudit(
-        number_of_potions=potion_count,
-        ml_in_barrels=row.red_ml + row.green_ml + row.blue_ml + row.dark_ml,
-        gold=gold,
+        lemonade_number=potion_numbers.get("lemonade", 0),
+        water_number=potion_numbers.get("water", 0),
+        cappuccino_number=potion_numbers.get("cappuccino", 0),
+        hot_chocolate_number=potion_numbers.get("hot_chocolate", 0),
+        grape_juice_number=potion_numbers.get("grape_juice", 0),
+        red_potion_number=potion_numbers.get("red_potion", 0),
+        green_potion_number=potion_numbers.get("green_potion", 0),
+        blue_potion_number=potion_numbers.get("blue_potion", 0),
+        dark_potion_number=potion_numbers.get("dark_potion", 0),
+        ml_in_barrels=inventory.red_ml
+        + inventory.green_ml
+        + inventory.blue_ml
+        + inventory.dark_ml,
+        gold=inventory.gold,
     )
 
 
