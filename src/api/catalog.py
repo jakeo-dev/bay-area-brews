@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
-from typing import List, Annotated
+from typing import List, Annotated, Sequence
 
 import sqlalchemy
 from src import database as db
@@ -21,7 +21,7 @@ class CatalogItem(BaseModel):
     )
 
 
-def create_catalog(rows: List[sqlalchemy.Row]) -> List[CatalogItem]:
+def create_catalog(rows: Sequence[sqlalchemy.Row]) -> List[CatalogItem]:
     return [
         CatalogItem(
             sku=row.sku,
