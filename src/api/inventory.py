@@ -14,7 +14,6 @@ router = APIRouter(
 
 
 class InventoryAudit(BaseModel):
-    thing: Sequence[sqlalchemy.Row[Any]]
     lemonade_number: int
     water_number: int
     cappuccino_number: int
@@ -56,16 +55,15 @@ def get_inventory():
     potion_numbers = {row.name: row.number for row in potion_rows}
 
     return InventoryAudit(
-        thing=potion_rows,
-        lemonade_number=potion_numbers.get("lemonade", 0),
-        water_number=potion_numbers.get("water", 0),
-        cappuccino_number=potion_numbers.get("cappuccino", 0),
-        hot_chocolate_number=potion_numbers.get("hot_chocolate", 0),
-        grape_juice_number=potion_numbers.get("grape_juice", 0),
-        red_potion_number=potion_numbers.get("red_potion", 0),
-        green_potion_number=potion_numbers.get("green_potion", 0),
-        blue_potion_number=potion_numbers.get("blue_potion", 0),
-        dark_potion_number=potion_numbers.get("dark_potion", 0),
+        lemonade_number=potion_numbers.get("Lemonade", 0),
+        water_number=potion_numbers.get("Water", 0),
+        cappuccino_number=potion_numbers.get("Cappuccino", 0),
+        hot_chocolate_number=potion_numbers.get("Hot chocolate", 0),
+        grape_juice_number=potion_numbers.get("Grape juice", 0),
+        red_potion_number=potion_numbers.get("Red potion", 0),
+        green_potion_number=potion_numbers.get("Green potion", 0),
+        blue_potion_number=potion_numbers.get("Blue potion", 0),
+        dark_potion_number=potion_numbers.get("Dark potion", 0),
         ml_in_barrels=inventory.red_ml
         + inventory.green_ml
         + inventory.blue_ml
