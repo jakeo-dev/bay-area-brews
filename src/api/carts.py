@@ -128,8 +128,12 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
 
         connection.execute(
             sqlalchemy.text("""
-                INSERT INTO cart_items (cart_id, potion_mixture_id, quantity)
-                VALUES (:cart_id, :mixture_id, :quantity)
+                INSERT INTO cart_items (
+                    cart_id, potion_mixture_id, quantity, customer_id
+                )
+                SELECT :cart_id, :mixture_id, :quantity, customer_id
+                FROM carts
+                WHERE id = :cart_id
                 ON CONFLICT (cart_id, potion_mixture_id)
                 DO UPDATE SET quantity = EXCLUDED.quantity
                 """),
