@@ -1,3 +1,5 @@
+from typing import Any, Sequence
+
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field
 import sqlalchemy
@@ -12,6 +14,7 @@ router = APIRouter(
 
 
 class InventoryAudit(BaseModel):
+    thing: Sequence[sqlalchemy.Row[Any]]
     lemonade_number: int
     water_number: int
     cappuccino_number: int
@@ -53,6 +56,7 @@ def get_inventory():
     potion_numbers = {row.name: row.number for row in potion_rows}
 
     return InventoryAudit(
+        thing=potion_rows,
         lemonade_number=potion_numbers.get("lemonade", 0),
         water_number=potion_numbers.get("water", 0),
         cappuccino_number=potion_numbers.get("cappuccino", 0),
