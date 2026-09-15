@@ -48,13 +48,15 @@ def get_catalog() -> List[CatalogItem]:
     """
     with db.engine.begin() as connection:
         rows = connection.execute(sqlalchemy.text("""
-                    SELECT sku, name, number, price,
-                           red_amount, green_amount, blue_amount, dark_amount
-                    FROM potion_mixtures
-                    WHERE number > 0
-                    ORDER BY id
-                    LIMIT 6
-                    """)).all()
-        # do this smarter later, dont just limit 6
+            SELECT potion_mixtures.sku, potion_mixtures.name, COALESCE(SUM(ledger_entries.amount), 0) AS number, potion_mixtures.price, potion_mixtures.red_amount, potion_mixtures.green_amount, potion_mixtures.blue_amount, potion_mixtures.dark_amount
+            FROM potion_mixtures
+            LEFT JOIN ledger_entries
+            ON ledger_entries.resource_type = 'potion'
+            AND ledger_entries.resource_key = 'potion:' || potion_mixtures.id
+            GROUP BY potion_mixtures.id
+            ORDER BY potion_mixtures.id
+            LIMIT 6
+        """)).all()
+    # do this smarter later, dont just limit 6
 
     return create_catalog(rows)

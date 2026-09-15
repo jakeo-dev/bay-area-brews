@@ -41,6 +41,17 @@ def post_deliver_bottles(potions_delivered: List[PotionMixes], order_id: int):
     print(f"potions delivered: {potions_delivered} order_id: {order_id}")
 
     with db.engine.begin() as connection:
+
+        transaction_id = connection.execute(
+            sqlalchemy.text("""
+                    INSERT INTO transactions (request_type, request_id, response)
+                    VALUES (:request_type, :request_id, NULL)
+                    RETURNING id
+                """),
+            {"request_type": "bottler_delivery", "request_id": order_id},
+        ).scalar_one_or_none()
+
+        entries = []
         for potion in potions_delivered:
             amounts = potion.potion_type
             mixture = connection.execute(

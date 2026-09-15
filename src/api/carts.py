@@ -169,12 +169,33 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         if not cart_exists:
             raise HTTPException(status_code=404, detail="Cart not found")
 
+        transaction_id = connection.execute(
+            sqlalchemy.text("""
+            INSERT INTO transactions (request_type, request_id, response)
+            VALUES (:request_type, :request_id, NULL)
+            RETURNING id
+        """),
+            {"request_type": "checkout", "request_id": cart_id},
+        ).scalar_one_or_none()
+        if transaction_id is None:
+            saved = connection.execute(
+                sqlalchemy.text("""
+                    SELECT response
+                    FROM transactions
+                    WHERE request_type = :request_type AND request_id = :request_id
+                """),
+                {"request_type": "checkout", "chec": cart_id},
+            ).scalar_one_or_none()
+            if saved is not None:
+                return CheckoutResponse(**saved)
+
         total_potions_bought = 0
         total_gold_paid = 0
+        entries = []
         rows = connection.execute(
             sqlalchemy.text("""
-                SELECT cart_items.quantity, potion_mixtures.sku,
-                       potion_mixtures.price, potion_mixtures.number
+                SELECT cart_items.quantity, potion_mixtures.id,
+                       potion_mixtures.price
                 FROM cart_items
                 JOIN potion_mixtures ON potion_mixtures.id = cart_items.potion_mixture_id
                 WHERE cart_items.cart_id = :cart_id
@@ -182,26 +203,53 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             {"cart_id": cart_id},
         ).all()
         for row in rows:
-            if row.number < row.quantity:
+            if (
+                connection.execute(
+                    sqlalchemy.text("""
+                    SELECT COALESCE(SUM(amount), 0)
+                    FROM ledger_entries
+                    WHERE resource_type = 'potion' AND resource_key = :resource_key
+                """),
+                    {"resource_type": "potion", "resource_key": f"potion:{row.id}"},
+                ).scalar_one()
+                < row.quantity
+            ):
                 raise HTTPException(
                     status_code=409, detail="Insufficient potion inventory"
                 )
-            connection.execute(
-                sqlalchemy.text("""
-                UPDATE potion_mixtures
-                SET number = number - :quantity
-                WHERE sku = :sku
-                """),
-                {"sku": row.sku, "quantity": row.quantity},
-            )
+            entries.append(("potion", f"potion:{row.id}", -row.quantity))
             total_potions_bought += row.quantity
             total_gold_paid += row.price * row.quantity
 
+        entries.append(("inventory", "gold", total_gold_paid))
         connection.execute(
-            sqlalchemy.text("UPDATE global_inventory SET gold = gold + :gold"),
-            {"gold": total_gold_paid},
+            sqlalchemy.text("""
+                            INSERT INTO ledger_entries
+                                (transaction_id, resource_type, resource_key, amount)
+                            VALUES (:transaction_id, :resource_type, :resource_key, :amount)
+                        """),
+            [
+                {
+                    "transaction_id": transaction_id,
+                    "resource_type": resource_type,
+                    "resource_key": resource_key,
+                    "amount": amount,
+                }
+                for resource_type, resource_key, amount in entries
+                if amount != 0
+            ],
+        )
+        response = {
+            "total_potions_bought": total_potions_bought,
+            "total_gold_paid": total_gold_paid,
+        }
+        connection.execute(
+            sqlalchemy.text("""
+                    UPDATE transactions
+                    SET response = CAST(:response AS jsonb)
+                    WHERE id = :transaction_id
+                """),
+            {"transaction_id": transaction_id, "response": response},
         )
 
-    return CheckoutResponse(
-        total_potions_bought=total_potions_bought, total_gold_paid=total_gold_paid
-    )
+    return CheckoutResponse(**response)

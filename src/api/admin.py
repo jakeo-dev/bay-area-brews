@@ -18,14 +18,59 @@ def reset():
     """
 
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("""
-                UPDATE global_inventory
-                SET gold = 100,
-                    red_ml = 0,
-                    green_ml = 0,
-                    blue_ml = 0,
-                    dark_ml = 0
-                """))
-        connection.execute(sqlalchemy.text("UPDATE potion_mixtures SET number = 0"))
-    # TODO: Implement database write logic here
-    pass
+        transaction_id = connection.execute(sqlalchemy.text("""
+            INSERT INTO transactions (request_type, request_id, response)
+            VALUES (
+                'reset',
+                COALESCE((SELECT MAX(request_id) FROM transactions WHERE request_type = 'reset'), 0) + 1,
+                '{}'::jsonb
+            )
+            RETURNING id
+        """)).scalar_one()
+
+        inventory_rows = connection.execute(
+            sqlalchemy.text("""
+                    SELECT resource_key, COALESCE(SUM(amount), 0) AS balance
+                    FROM ledger_entries
+                    WHERE resource_type = :resource_type
+                    GROUP BY resource_key
+                """),
+            {"resource_type": "inventory"},
+        ).all()
+        inventory = {row.resource_key: row.balance for row in inventory_rows}
+
+        potion_rows = connection.execute(
+            sqlalchemy.text("""
+                            SELECT resource_key, COALESCE(SUM(amount), 0) AS balance
+                            FROM ledger_entries
+                            WHERE resource_type = :resource_type
+                            GROUP BY resource_key
+                        """),
+            {"resource_type": "potion"},
+        ).all()
+        potion_balances = {row.resource_key: row.balance for row in inventory_rows}
+        entries = [("inventory", key, -value) for key, value in inventory.items()]
+        entries.append(("inventory", "gold", 100))
+        entries.extend(
+            ("potion", key, -value) for key, value in potion_balances.items()
+        )
+
+        connection.execute(
+            sqlalchemy.text("""
+                    INSERT INTO ledger_entries
+                        (transaction_id, resource_type, resource_key, amount)
+                    VALUES (:transaction_id, :resource_type, :resource_key, :amount)
+                """),
+            [
+                {
+                    "transaction_id": transaction_id,
+                    "resource_type": resource_type,
+                    "resource_key": resource_key,
+                    "amount": amount,
+                }
+                for resource_type, resource_key, amount in entries
+                if amount != 0
+            ],
+        )
+        connection.execute(sqlalchemy.text("DELETE FROM cart_items"))
+        connection.execute(sqlalchemy.text("DELETE FROM carts"))

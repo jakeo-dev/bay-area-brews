@@ -62,13 +62,14 @@ def post_deliver_barrels(barrels_delivered: List[Barrel], order_id: int):
     delivery = calculate_barrel_summary(barrels_delivered)
 
     with db.engine.begin() as connection:
-        connection.execute(
+        transaction_id = connection.execute(
             sqlalchemy.text("""
-                UPDATE global_inventory 
-                SET gold = gold - :gold_paid
-                """),
-            [{"gold_paid": delivery.gold_paid}],
-        )
+            INSERT INTO transactions (request_type, request_id, response)
+            VALUES (:request_type, :request_id, NULL)
+            RETURNING id
+        """),
+            {"request_type": "barrel_delivery", "request_id": order_id},
+        ).scalar_one_or_none()
 
         liquid_columns = ("red_ml", "green_ml", "blue_ml", "dark_ml")
         liquid_totals = {
@@ -78,11 +79,28 @@ def post_deliver_barrels(barrels_delivered: List[Barrel], order_id: int):
             )
             for index, column in enumerate(liquid_columns)
         }
-        updates = ", ".join(
-            f"{column} = {column} + :{column}" for column in liquid_columns
-        )
         connection.execute(
-            sqlalchemy.text(f"UPDATE global_inventory SET {updates}"), liquid_totals
+            sqlalchemy.text("""
+                            INSERT INTO ledger_entries
+                                (transaction_id, resource_type, resource_key, amount)
+                            VALUES (:transaction_id, :resource_type, :resource_key, :amount)
+                        """),
+            [
+                {
+                    "transaction_id": transaction_id,
+                    "resource_type": resource_type,
+                    "resource_key": resource_key,
+                    "amount": amount,
+                }
+                for resource_type, resource_key, amount in [
+                    ("inventory", "gold", -delivery.gold_paid),
+                    *[
+                        ("inventory", column, liquid_totals[column])
+                        for column in liquid_columns
+                    ],
+                ]
+                if amount != 0
+            ],
         )
 
     pass
