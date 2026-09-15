@@ -158,15 +158,23 @@ def get_wholesale_purchase_plan(wholesale_catalog: List[Barrel]):
     target_component = random.randint(0, 2)
 
     with db.engine.begin() as connection:
-        row = connection.execute(sqlalchemy.text("""
-                SELECT gold, red_ml, green_ml, blue_ml, dark_ml
-                FROM global_inventory
-                """)).one()
+        inventory_rows = connection.execute(sqlalchemy.text("""
+            SELECT resource_type, SUM(amount) AS sum
+            FROM ledger_entries
+            WHERE resource_type = inventory
+            GROUP BY resource_key
+        """)).all()
+        inventory = {row.resource_type: row.sum for row in inventory_rows}
 
     return create_barrel_plan(
-        gold=row.gold,
+        gold=inventory.get("gold", 0),
         max_barrel_capacity=10000,
-        current_liquids=[row.red_ml, row.green_ml, row.blue_ml, row.dark_ml],
+        current_liquids=[
+            inventory.get("red_ml", 0),
+            inventory.get("green_ml", 0),
+            inventory.get("blue_ml", 0),
+            inventory.get("dark_ml", 0),
+        ],
         target_component=target_component,
         wholesale_catalog=wholesale_catalog,
     )
