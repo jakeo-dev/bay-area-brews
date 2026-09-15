@@ -1,5 +1,3 @@
-from typing import Any, Sequence
-
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field
 import sqlalchemy
@@ -43,16 +41,27 @@ def get_inventory():
     """
 
     with db.engine.begin() as connection:
-        inventory = connection.execute(sqlalchemy.text("""
-            SELECT gold, red_ml, green_ml, blue_ml, dark_ml
-            FROM global_inventory
-            """)).one()
         potion_rows = connection.execute(sqlalchemy.text("""
-            SELECT name, number
+            SELECT id, name
             FROM potion_mixtures
             """)).all()
+        inventory_rows = connection.execute(sqlalchemy.text("""
+            SELECT resource_key, SUM(amount) AS balance
+            FROM ledger_entries
+            WHERE resource_type = 'inventory'
+            GROUP BY resource_key 
+        """)).all()
+        inventory = {row.resource_key: row.balance for row in inventory_rows}
 
-    potion_numbers = {row.name: row.number for row in potion_rows}
+        potion_numbers = {}
+
+        for row in potion_rows:
+            thing = connection.execute(sqlalchemy.text("""
+                SELECT SUM(amount) AS balance
+                FROM ledger_entries
+                WHERE resource_type = 'potion' AND resource_key = f"potion:{row.id}"
+            """)).one()
+            potion_numbers[row.name] = thing
 
     return InventoryAudit(
         lemonade_number=potion_numbers.get("Lemonade", 0),
@@ -64,11 +73,11 @@ def get_inventory():
         green_potion_number=potion_numbers.get("Green potion", 0),
         blue_potion_number=potion_numbers.get("Blue potion", 0),
         dark_potion_number=potion_numbers.get("Dark potion", 0),
-        ml_in_barrels=inventory.red_ml
-        + inventory.green_ml
-        + inventory.blue_ml
-        + inventory.dark_ml,
-        gold=inventory.gold,
+        ml_in_barrels=inventory.get("red_ml", 0)
+        + inventory.get("green_ml", 0)
+        + inventory.get("blue_ml", 0)
+        + inventory.get("dark_ml", 0),
+        gold=inventory.get("gold", 0),
     )
 
 

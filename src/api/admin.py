@@ -48,7 +48,7 @@ def reset():
                         """),
             {"resource_type": "potion"},
         ).all()
-        potion_balances = {row.resource_key: row.balance for row in inventory_rows}
+        potion_balances = {row.resource_key: row.balance for row in potion_rows}
         entries = [("inventory", key, -value) for key, value in inventory.items()]
         entries.append(("inventory", "gold", 100))
         entries.extend(
