@@ -194,7 +194,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         entries = []
         rows = connection.execute(
             sqlalchemy.text("""
-                SELECT cart_items.quantity, potion_mixtures.id,
+                SELECT cart_items.quantity, potion_mixtures.sku AS sku,
                        potion_mixtures.price
                 FROM cart_items
                 JOIN potion_mixtures ON potion_mixtures.id = cart_items.potion_mixture_id
@@ -210,14 +210,14 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     FROM ledger_entries
                     WHERE resource_type = 'potion' AND resource_key = :resource_key
                 """),
-                    {"resource_key": f"potion:{row.id}"},
+                    {"resource_key": row.sku},
                 ).scalar_one()
                 < row.quantity
             ):
                 raise HTTPException(
                     status_code=409, detail="Insufficient potion inventory"
                 )
-            entries.append(("potion", f"potion:{row.id}", -row.quantity))
+            entries.append(("potion", row.sku, -row.quantity))
             total_potions_bought += row.quantity
             total_gold_paid += row.price * row.quantity
 

@@ -42,7 +42,7 @@ def get_inventory():
 
     with db.engine.begin() as connection:
         potion_rows = connection.execute(sqlalchemy.text("""
-            SELECT id, name
+            SELECT sku, name
             FROM potion_mixtures
         """)).all()
         inventory_rows = connection.execute(sqlalchemy.text("""
@@ -62,7 +62,7 @@ def get_inventory():
                     FROM ledger_entries
                     WHERE resource_type = 'potion' AND resource_key = :resource_key
                 """),
-                {"resource_key": f"potion:{row.id}"},
+                {"resource_key": row.sku},
             ).scalar_one()
             potion_numbers[row.name] = thing
 

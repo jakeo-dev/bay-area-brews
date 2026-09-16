@@ -52,7 +52,7 @@ def get_catalog() -> List[CatalogItem]:
             FROM potion_mixtures
             LEFT JOIN ledger_entries
             ON ledger_entries.resource_type = 'potion'
-            AND ledger_entries.resource_key = 'potion:' || potion_mixtures.id
+            AND ledger_entries.resource_key = potion_mixtures.sku
             GROUP BY potion_mixtures.id
             ORDER BY potion_mixtures.id
             LIMIT 6

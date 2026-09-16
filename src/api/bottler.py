@@ -56,13 +56,13 @@ def post_deliver_bottles(potions_delivered: List[PotionMixes], order_id: int):
             amounts = potion.potion_type
             mixture = connection.execute(
                 sqlalchemy.text("""
-                SELECT id FROM potion_mixtures
+                SELECT sku FROM potion_mixtures
                 WHERE red_amount = :red AND green_amount = :green
                   AND blue_amount = :blue AND dark_amount = :dark
                 """),
                 dict(zip(("red", "green", "blue", "dark"), amounts)),
             ).one()
-            entries.append(("potion", f"potion:{mixture.id}", potion.quantity))
+            entries.append(("potion", mixture.sku, potion.quantity))
             for column, amount in zip(
                 ("red_ml", "green_ml", "blue_ml", "dark_ml"), amounts
             ):
@@ -154,7 +154,7 @@ def get_bottle_plan():
         """)).all()
         inventory = {row.resource_key: row.balance for row in inventory_rows}
         mixtures = connection.execute(sqlalchemy.text("""
-            SELECT id, red_amount, green_amount, blue_amount, dark_amount
+            SELECT sku, red_amount, green_amount, blue_amount, dark_amount
             FROM potion_mixtures
             ORDER BY id
             """)).all()
@@ -167,7 +167,7 @@ def get_bottle_plan():
                     FROM ledger_entries
                     WHERE resource_type = 'potion' AND resource_key = :resource_key
                 """),
-                {"resource_key": f"potion:{mixture.id}"},
+                {"resource_key": mixture.sku},
             ).scalar_one()
             potion_mixtures.append(
                 [
