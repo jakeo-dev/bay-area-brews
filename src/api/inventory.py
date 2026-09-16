@@ -56,11 +56,14 @@ def get_inventory():
         potion_numbers = {}
 
         for row in potion_rows:
-            thing = connection.execute(sqlalchemy.text("""
-                SELECT COALESCE(SUM(amount), 0) AS balance
-                FROM ledger_entries
-                WHERE resource_type = 'potion' AND resource_key = f"potion:{row.id}"
-            """)).one()
+            thing = connection.execute(
+                sqlalchemy.text("""
+                    SELECT COALESCE(SUM(amount), 0) AS balance
+                    FROM ledger_entries
+                    WHERE resource_type = 'potion' AND resource_key = :resource_key"
+                """),
+                {"resource_key": f"potion:{row.id}"},
+            ).scalar_one()
             potion_numbers[row.name] = thing
 
     return InventoryAudit(
