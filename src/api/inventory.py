@@ -44,9 +44,9 @@ def get_inventory():
         potion_rows = connection.execute(sqlalchemy.text("""
             SELECT id, name
             FROM potion_mixtures
-            """)).all()
+        """)).all()
         inventory_rows = connection.execute(sqlalchemy.text("""
-            SELECT resource_key, SUM(amount) AS balance
+            SELECT resource_key, COALESCE(SUM(amount), 0) AS balance
             FROM ledger_entries
             WHERE resource_type = 'inventory'
             GROUP BY resource_key 
@@ -57,7 +57,7 @@ def get_inventory():
 
         for row in potion_rows:
             thing = connection.execute(sqlalchemy.text("""
-                SELECT SUM(amount) AS balance
+                SELECT COALESCE(SUM(amount), 0) AS balance
                 FROM ledger_entries
                 WHERE resource_type = 'potion' AND resource_key = f"potion:{row.id}"
             """)).one()

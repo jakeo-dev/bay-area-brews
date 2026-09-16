@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Sequence
 
@@ -62,27 +62,51 @@ def post_deliver_bottles(potions_delivered: List[PotionMixes], order_id: int):
                 """),
                 dict(zip(("red", "green", "blue", "dark"), amounts)),
             ).one()
+            entries.append(("potion", f"potion:{mixture.id}", potion.quantity))
+            for column, amount in zip(
+                ("red_ml", "green_ml", "blue_ml", "dark_ml"), amounts
+            ):
+                entries.append(("inventory", column, -(amount * potion.quantity)))
 
-            connection.execute(
-                sqlalchemy.text("""
-                    UPDATE potion_mixtures
-                    SET number = number + :quantity
-                    WHERE id = :id
-                    """),
-                {"quantity": potion.quantity, "id": mixture.id},
+        inventory_rows = connection.execute(sqlalchemy.text("""
+            SELECT resource_key, COALESCE(SUM(amount), 0) AS balance
+            FROM ledger_entries
+            WHERE resource_type = 'inventory'
+            GROUP BY resource_key 
+        """)).all()
+        inventory = {row.resource_key: row.balance for row in inventory_rows}
+        for key, amount in (
+            ("red_ml", "red_ml"),
+            ("green_ml", "green_ml"),
+            ("blue_ml", "blue_ml"),
+            ("dark_ml", "dark_ml"),
+        ):
+            required = sum(
+                entry[2]
+                for entry in entries
+                if entry[0] == "inventory" and entry[1] == key
             )
-
-            liquid_columns = ("red_ml", "green_ml", "blue_ml", "dark_ml")
-            updates = ", ".join(
-                f"{column} = {column} - :{column}" for column in liquid_columns
-            )
-            connection.execute(
-                sqlalchemy.text(f"UPDATE global_inventory SET {updates}"),
+            if inventory.get(amount, 0) < -required:
+                raise HTTPException(
+                    status_code=409, detail="Insufficient liquid inventory"
+                )
+        connection.execute(
+            sqlalchemy.text("""
+                    INSERT INTO ledger_entries
+                        (transaction_id, resource_type, resource_key, amount)
+                    VALUES (:transaction_id, :resource_type, :resource_key, :amount)
+                """),
+            [
                 {
-                    column: amount * potion.quantity
-                    for column, amount in zip(liquid_columns, amounts)
-                },
-            )
+                    "transaction_id": transaction_id,
+                    "resource_type": resource_type,
+                    "resource_key": resource_key,
+                    "amount": amount,
+                }
+                for resource_type, resource_key, amount in entries
+                if amount != 0
+            ],
+        )
 
 
 def create_bottle_plan(
@@ -122,30 +146,49 @@ def get_bottle_plan():
     """
 
     with db.engine.begin() as connection:
-        row = connection.execute(sqlalchemy.text("""
-            SELECT red_ml, green_ml, blue_ml, dark_ml
-            FROM global_inventory
-            """)).one()
+        inventory_rows = connection.execute(sqlalchemy.text("""
+            SELECT resource_key, COALESCE(SUM(amount), 0) AS balance
+            FROM ledger_entries
+            WHERE resource_type = 'inventory'
+            GROUP BY resource_key
+        """)).all()
+        inventory = {row.resource_key: row.balance for row in inventory_rows}
         mixtures = connection.execute(sqlalchemy.text("""
-            SELECT red_amount, green_amount, blue_amount, dark_amount, number
+            SELECT id, red_amount, green_amount, blue_amount, dark_amount
             FROM potion_mixtures
             ORDER BY id
             """)).all()
 
-    available_liquids = [row.red_ml, row.green_ml, row.blue_ml, row.dark_ml]
+        potion_mixtures: List[List[int]] = []
+        for mixture in mixtures:
+            balance = connection.execute(
+                sqlalchemy.text("""
+                    SELECT COALESCE(SUM(amount), 0)
+                    FROM ledger_entries
+                    WHERE resource_type = 'potion' AND resource_key = :resource_key
+                """),
+                {"resource_key": f"potion:{mixture.id}"},
+            ).scalar_one()
+            potion_mixtures.append(
+                [
+                    mixture.red_amount,
+                    mixture.green_amount,
+                    mixture.blue_amount,
+                    mixture.dark_amount,
+                    int(balance),
+                ]
+            )
+
+    available_liquids = [
+        inventory.get("red_ml", 0),
+        inventory.get("green_ml", 0),
+        inventory.get("blue_ml", 0),
+        inventory.get("dark_ml", 0),
+    ]
     return create_bottle_plan(
         available_liquids=available_liquids,
         maximum_potion_capacity=54,
-        potion_mixtures=[
-            [
-                mixture.red_amount,
-                mixture.green_amount,
-                mixture.blue_amount,
-                mixture.dark_amount,
-                mixture.number,
-            ]
-            for mixture in mixtures
-        ],
+        potion_mixtures=potion_mixtures,
     )
 
 

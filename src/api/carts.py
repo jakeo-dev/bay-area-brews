@@ -199,7 +199,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 FROM cart_items
                 JOIN potion_mixtures ON potion_mixtures.id = cart_items.potion_mixture_id
                 WHERE cart_items.cart_id = :cart_id
-                """),
+            """),
             {"cart_id": cart_id},
         ).all()
         for row in rows:
