@@ -161,7 +161,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: List[Barrel]):
         inventory_rows = connection.execute(sqlalchemy.text("""
             SELECT resource_type, COALESCE(SUM(amount), 0) AS sum
             FROM ledger_entries
-            WHERE resource_type = inventory
+            WHERE resource_type = 'inventory'
             GROUP BY resource_key
         """)).all()
         inventory = {row.resource_type: row.sum for row in inventory_rows}

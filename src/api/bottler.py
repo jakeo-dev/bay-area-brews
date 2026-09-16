@@ -165,7 +165,7 @@ def get_bottle_plan():
                 sqlalchemy.text("""
                     SELECT COALESCE(SUM(amount), 0)
                     FROM ledger_entries
-                    WHERE resource_type = 'potion' AND resource_key = :resource_key
+                    WHERE resource_type = 'potion' AND resource_key = ':resource_key'
                 """),
                 {"resource_key": mixture.sku},
             ).scalar_one()

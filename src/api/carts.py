@@ -208,7 +208,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     sqlalchemy.text("""
                     SELECT COALESCE(SUM(amount), 0) AS balance
                     FROM ledger_entries
-                    WHERE resource_type = 'potion' AND resource_key = :resource_key
+                    WHERE resource_type = 'potion' AND resource_key = ':resource_key'
                 """),
                     {"resource_key": row.sku},
                 ).scalar_one()
