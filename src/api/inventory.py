@@ -60,7 +60,7 @@ def get_inventory():
                 sqlalchemy.text("""
                     SELECT COALESCE(SUM(amount), 0) AS balance
                     FROM ledger_entries
-                    WHERE resource_type = 'potion' AND resource_key = :resource_key"
+                    WHERE resource_type = 'potion' AND resource_key = :resource_key
                 """),
                 {"resource_key": f"potion:{row.id}"},
             ).scalar_one()

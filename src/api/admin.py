@@ -23,7 +23,7 @@ def reset():
             VALUES (
                 'reset',
                 COALESCE((SELECT MAX(request_id) FROM transactions WHERE request_type = 'reset'), 0) + 1,
-                '{}'::jsonb
+                NULL
             )
             RETURNING id
         """)).scalar_one()
