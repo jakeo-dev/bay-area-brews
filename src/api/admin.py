@@ -32,7 +32,7 @@ def reset():
             sqlalchemy.text("""
                     SELECT resource_key, COALESCE(SUM(amount), 0) AS balance
                     FROM ledger_entries
-                    WHERE resource_type = ':resource_type'
+                    WHERE resource_type = :resource_type
                     GROUP BY resource_key
                 """),
             {"resource_type": "inventory"},
@@ -43,7 +43,7 @@ def reset():
             sqlalchemy.text("""
                             SELECT resource_key, COALESCE(SUM(amount), 0) AS balance
                             FROM ledger_entries
-                            WHERE resource_type = ':resource_type'
+                            WHERE resource_type = :resource_type
                             GROUP BY resource_key
                         """),
             {"resource_type": "potion"},

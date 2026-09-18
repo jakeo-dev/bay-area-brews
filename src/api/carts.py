@@ -128,14 +128,25 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
 
         connection.execute(
             sqlalchemy.text("""
+                UPDATE cart_items
+                SET quantity = :quantity
+                WHERE cart_id = :cart_id AND potion_mixture_id = :mixture_id
+            """),
+            {
+                "cart_id": cart_id,
+                "mixture_id": mixture_id,
+                "quantity": cart_item.quantity,
+            },
+        )
+
+        connection.execute(
+            sqlalchemy.text("""
                 INSERT INTO cart_items (
                     cart_id, potion_mixture_id, quantity, customer_id
                 )
                 SELECT :cart_id, :mixture_id, :quantity, customer_id
                 FROM carts
                 WHERE id = :cart_id
-                ON CONFLICT (cart_id, potion_mixture_id)
-                DO UPDATE SET quantity = EXCLUDED.quantity
                 """),
             {
                 "cart_id": cart_id,
@@ -208,7 +219,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     sqlalchemy.text("""
                     SELECT COALESCE(SUM(amount), 0) AS balance
                     FROM ledger_entries
-                    WHERE resource_type = 'potion' AND resource_key = ':resource_key'
+                    WHERE resource_type = 'potion' AND resource_key = :resource_key
                 """),
                     {"resource_key": row.sku},
                 ).scalar_one()
