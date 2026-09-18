@@ -44,10 +44,10 @@ def post_deliver_bottles(potions_delivered: List[PotionMixes], order_id: int):
 
         transaction_id = connection.execute(
             sqlalchemy.text("""
-                    INSERT INTO transactions (request_type, request_id, response)
-                    VALUES (:request_type, :request_id, NULL)
-                    RETURNING id
-                """),
+                INSERT INTO transactions (request_type, request_id, response)
+                VALUES (:request_type, :request_id, NULL)
+                RETURNING id
+            """),
             {"request_type": "bottler_delivery", "request_id": order_id},
         ).scalar_one()
 

@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 import sqlalchemy
@@ -254,13 +256,15 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             "total_potions_bought": total_potions_bought,
             "total_gold_paid": total_gold_paid,
         }
+
+        print(f"response: {response}")
         connection.execute(
             sqlalchemy.text("""
                     UPDATE transactions
                     SET response = CAST(:response AS jsonb)
                     WHERE id = :transaction_id
                 """),
-            {"transaction_id": transaction_id, "response": response},
+            {"transaction_id": transaction_id, "response": json.dumps(response)},
         )
 
     return CheckoutResponse(**response)
