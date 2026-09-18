@@ -12,15 +12,7 @@ router = APIRouter(
 
 
 class InventoryAudit(BaseModel):
-    lemonade_number: int
-    water_number: int
-    cappuccino_number: int
-    hot_chocolate_number: int
-    grape_juice_number: int
-    red_potion_number: int
-    green_potion_number: int
-    blue_potion_number: int
-    dark_potion_number: int
+    number_of_potions: int
     ml_in_barrels: int
     gold: int
 
@@ -67,15 +59,15 @@ def get_inventory():
             potion_numbers[row.name] = thing
 
     return InventoryAudit(
-        lemonade_number=potion_numbers.get("Lemonade", 0),
-        water_number=potion_numbers.get("Water", 0),
-        cappuccino_number=potion_numbers.get("Cappuccino", 0),
-        hot_chocolate_number=potion_numbers.get("Hot chocolate", 0),
-        grape_juice_number=potion_numbers.get("Grape juice", 0),
-        red_potion_number=potion_numbers.get("Red potion", 0),
-        green_potion_number=potion_numbers.get("Green potion", 0),
-        blue_potion_number=potion_numbers.get("Blue potion", 0),
-        dark_potion_number=potion_numbers.get("Dark potion", 0),
+        number_of_potions=potion_numbers.get("Lemonade", 0)
+        + potion_numbers.get("Water", 0)
+        + potion_numbers.get("Cappuccino", 0)
+        + potion_numbers.get("Hot chocolate", 0)
+        + potion_numbers.get("Grape juice", 0)
+        + potion_numbers.get("Red potion", 0)
+        + potion_numbers.get("Green potion", 0)
+        + potion_numbers.get("Blue potion", 0)
+        + potion_numbers.get("Dark potion", 0),
         ml_in_barrels=inventory.get("red_ml", 0)
         + inventory.get("green_ml", 0)
         + inventory.get("blue_ml", 0)
