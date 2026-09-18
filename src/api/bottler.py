@@ -117,22 +117,22 @@ def create_bottle_plan(
 ) -> List[PotionMixes]:
     potions_to_make = []
     remaining_capacity = maximum_potion_capacity
-
+    print(f"potion mixtures: {potion_mixtures}")
     for potion_type in potion_mixtures:
-        number = potion_type[4]
-        if number < 6:
-            if remaining_capacity <= 0:
-                break
-            possible = remaining_capacity
+        print(f"potion type to bottle: {potion_type}")
+        if remaining_capacity <= 0:
+            break
+        possible = remaining_capacity
 
-            for available, amount in zip(available_liquids, potion_type):
-                if amount:
-                    possible = min(possible, available // amount)
-            if possible > 0:
-                potions_to_make.append(
-                    PotionMixes(potion_type=list(potion_type), quantity=possible)
-                )
-                remaining_capacity -= possible
+        for available, amount in zip(available_liquids, potion_type):
+            if amount:
+                possible = min(possible, available // amount)
+        if possible > 0:
+            print(f"possible greater than 0, possible {possible}")
+            potions_to_make.append(
+                PotionMixes(potion_type=list(potion_type), quantity=possible)
+            )
+            remaining_capacity -= possible
 
     print(f"bottle plan {potions_to_make}")
     return potions_to_make
@@ -176,7 +176,6 @@ def get_bottle_plan():
                     mixture.green_amount,
                     mixture.blue_amount,
                     mixture.dark_amount,
-                    int(balance),
                 ]
             )
 
@@ -186,9 +185,10 @@ def get_bottle_plan():
         inventory.get("blue_ml", 0),
         inventory.get("dark_ml", 0),
     ]
+    print(f"available_liquids: {available_liquids}")
     return create_bottle_plan(
         available_liquids=available_liquids,
-        maximum_potion_capacity=54,
+        maximum_potion_capacity=50,
         potion_mixtures=potion_mixtures,
     )
 
