@@ -187,7 +187,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             RETURNING id
         """),
             {"request_type": "checkout", "request_id": cart_id},
-        ).scalar_one_or_none()
+        ).scalar_one()
         if transaction_id is None:
             saved = connection.execute(
                 sqlalchemy.text("""

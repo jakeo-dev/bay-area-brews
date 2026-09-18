@@ -69,7 +69,7 @@ def post_deliver_barrels(barrels_delivered: List[Barrel], order_id: int):
             RETURNING id
         """),
             {"request_type": "barrel_delivery", "request_id": order_id},
-        ).scalar_one_or_none()
+        ).scalar_one()
 
         liquid_columns = ("red_ml", "green_ml", "blue_ml", "dark_ml")
         liquid_totals = {

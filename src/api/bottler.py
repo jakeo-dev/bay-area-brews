@@ -49,7 +49,7 @@ def post_deliver_bottles(potions_delivered: List[PotionMixes], order_id: int):
                     RETURNING id
                 """),
             {"request_type": "bottler_delivery", "request_id": order_id},
-        ).scalar_one_or_none()
+        ).scalar_one()
 
         entries = []
         for potion in potions_delivered:
@@ -90,6 +90,7 @@ def post_deliver_bottles(potions_delivered: List[PotionMixes], order_id: int):
                 raise HTTPException(
                     status_code=409, detail="Insufficient liquid inventory"
                 )
+
         connection.execute(
             sqlalchemy.text("""
                     INSERT INTO ledger_entries
