@@ -130,8 +130,13 @@ def create_barrel_plan(
     # return an empty list if no good barrels found
     current_plan = []
 
-    for barrel in sorted_wholesale_catalog:
+    current_plan_cost = 0
+    i = 0
+    while i < len(sorted_wholesale_catalog) and current_plan_cost <= gold:
+        barrel = sorted_wholesale_catalog[i]
         current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
+        current_plan_cost += barrel.price
+        i += 1
 
     # try to get dark barrel if its in the catalog now
     """ if current_liquids[target_component] < 1000:
