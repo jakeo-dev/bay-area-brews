@@ -1,3 +1,5 @@
+import random
+
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from typing import List, Annotated, Sequence
@@ -22,7 +24,7 @@ class CatalogItem(BaseModel):
 
 
 def create_catalog(rows: Sequence[sqlalchemy.Row]) -> List[CatalogItem]:
-    return [
+    full_catalog = [
         CatalogItem(
             sku=row.sku,
             name=row.name,
@@ -38,6 +40,10 @@ def create_catalog(rows: Sequence[sqlalchemy.Row]) -> List[CatalogItem]:
         for row in rows
         if row.number > 0
     ]
+    random.shuffle(full_catalog)
+
+    filtered_catalog = full_catalog[:6]
+    return filtered_catalog
 
 
 @router.get("/catalog/", tags=["catalog"], response_model=List[CatalogItem])
@@ -50,12 +56,9 @@ def get_catalog() -> List[CatalogItem]:
         rows = connection.execute(sqlalchemy.text("""
             SELECT potion_mixtures.sku, potion_mixtures.name, COALESCE(SUM(ledger_entries.amount), 0) AS number, potion_mixtures.price, potion_mixtures.red_amount, potion_mixtures.green_amount, potion_mixtures.blue_amount, potion_mixtures.dark_amount
             FROM potion_mixtures
-            LEFT JOIN ledger_entries
-            ON ledger_entries.resource_type = 'potion'
-            AND ledger_entries.resource_key = potion_mixtures.sku
+            LEFT JOIN ledger_entries ON ledger_entries.resource_type = 'potion' AND ledger_entries.resource_key = potion_mixtures.sku
             GROUP BY potion_mixtures.id
             ORDER BY potion_mixtures.id
-            LIMIT 6
         """)).all()
     # do this smarter later, dont just limit 6
 
