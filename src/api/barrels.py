@@ -117,12 +117,30 @@ def create_barrel_plan(
         f"gold: {gold}, max_barrel_capacity: {max_barrel_capacity}, current_liquids: {current_liquids}, wholesale_catalog: {wholesale_catalog}"
     )
 
+    # filter by prices less than current gold
+    filtered_wholesale_catalog = [
+        barrel for barrel in wholesale_catalog if barrel.price <= gold
+    ]
+    # sort by price per ml, lowest to highest
+    sorted_wholesale_catalog = sorted(
+        filtered_wholesale_catalog,
+        key=lambda barrel: barrel.price / barrel.ml_per_barrel,
+    )
+
+    # return an empty list if no good barrels found
     current_plan = []
 
+    for barrel in sorted_wholesale_catalog:
+        current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
+
     # try to get dark barrel if its in the catalog now
-    if current_liquids[target_component] < 1000:
+    """ if current_liquids[target_component] < 1000:
         barrel = min(
-            (barrel for barrel in wholesale_catalog if barrel.potion_type[3] == 1),
+            (
+                barrel
+                for barrel in sorted_wholesale_catalog
+                if barrel.potion_type[3] == 1
+            ),
             key=lambda barrel: barrel.ml_per_barrel,
             default=None,
         )
@@ -133,16 +151,15 @@ def create_barrel_plan(
         barrel = min(
             (
                 barrel
-                for barrel in wholesale_catalog
+                for barrel in sorted_wholesale_catalog
                 if barrel.potion_type[target_component] == 1 and "SMALL" in barrel.sku
             ),
             key=lambda barrel: barrel.ml_per_barrel,
             default=None,
         )
         if barrel and barrel.price <= gold:
-            current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
+            current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1)) """
 
-    # return an empty list if no affordable red barrel is found
     return current_plan
 
 
