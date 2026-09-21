@@ -159,12 +159,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: List[Barrel]):
 
     with db.engine.begin() as connection:
         inventory_rows = connection.execute(sqlalchemy.text("""
-            SELECT COALESCE(SUM(amount), 0) AS sum
+            SELECT resource_key, COALESCE(SUM(amount), 0) AS sum
             FROM ledger_entries
             WHERE resource_type = 'inventory'
             GROUP BY resource_key
         """)).all()
-        inventory = {row.resource_type: row.sum for row in inventory_rows}
+        inventory = {row.resource_key: row.sum for row in inventory_rows}
 
     return create_barrel_plan(
         gold=inventory.get("gold", 0),
