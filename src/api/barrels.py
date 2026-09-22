@@ -132,7 +132,10 @@ def create_barrel_plan(
 
     current_plan_cost = 0
     i = 0
-    while i < len(sorted_wholesale_catalog) and current_plan_cost <= gold:
+    while (
+        i < len(sorted_wholesale_catalog)
+        and current_plan_cost + sorted_wholesale_catalog[i].price <= gold
+    ):
         barrel = sorted_wholesale_catalog[i]
         current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
         current_plan_cost += barrel.price
