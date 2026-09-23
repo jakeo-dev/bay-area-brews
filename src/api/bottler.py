@@ -116,6 +116,7 @@ def create_bottle_plan(
     maximum_potion_capacity: int,
 ) -> List[PotionMixes]:
     potions_to_make = []
+    remaining_liquids = list(available_liquids)
     remaining_capacity = maximum_potion_capacity
     print(f"potion mixtures: {potion_mixtures}")
     for potion_type in potion_mixtures:
@@ -124,7 +125,9 @@ def create_bottle_plan(
             break
         possible = remaining_capacity
 
-        for available, amount in zip(available_liquids, potion_type):
+        for available, amount in zip(remaining_liquids, potion_type):
+            print(f"available: {available}")
+            print(f"amount: {amount}")
             if amount:
                 possible = min(possible, available // amount)
         if possible > 0:
@@ -132,9 +135,14 @@ def create_bottle_plan(
             potions_to_make.append(
                 PotionMixes(potion_type=list(potion_type), quantity=possible)
             )
+            remaining_liquids = [
+                available - amount * possible
+                for available, amount in zip(remaining_liquids, potion_type)
+            ]
+            print(f"remaining_liquids: {remaining_liquids}")
             remaining_capacity -= possible
 
-    print(f"bottle plan {potions_to_make}")
+    print(f"bottle plan: {potions_to_make}")
     return potions_to_make
 
 
