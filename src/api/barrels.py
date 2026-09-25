@@ -36,6 +36,8 @@ class Barrel(BaseModel):
         print(f"received potion_type={potion_type}, total={sum(potion_type)}")
 
         total = sum(potion_type)
+        if abs(total) < 1e-6:
+            return potion_type
         if abs(total - 100.0) < 1e-6:
             potion_type = [amount / 100 for amount in potion_type]
         elif not abs(total - 1.0) < 1e-6:
@@ -125,7 +127,9 @@ def create_barrel_plan(
 
     # filter by prices less than current gold
     filtered_wholesale_catalog = [
-        barrel for barrel in wholesale_catalog if barrel.price <= gold
+        barrel
+        for barrel in wholesale_catalog
+        if barrel.price <= gold and any(amount > 0 for amount in barrel.potion_type)
     ]
     # sort by price per ml, lowest to highest
     sorted_wholesale_catalog = sorted(
