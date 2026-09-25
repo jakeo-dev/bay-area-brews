@@ -32,6 +32,9 @@ class Barrel(BaseModel):
     def validate_potion_type(cls, potion_type: List[float]) -> List[float]:
         if len(potion_type) != 4:
             raise ValueError("potion_type must have exactly 4 elements: [r, g, b, d]")
+
+        print(f"received potion_type={potion_type}, total={sum(potion_type)}")
+
         total = sum(potion_type)
         if abs(total - 100.0) < 1e-6:
             potion_type = [amount / 100 for amount in potion_type]
