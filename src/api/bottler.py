@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Sequence
+import random
 
 import sqlalchemy
 from src.api import auth
@@ -118,12 +119,14 @@ def create_bottle_plan(
     potions_to_make = []
     remaining_liquids = list(available_liquids)
     remaining_capacity = maximum_potion_capacity
-    print(f"potion mixtures: {potion_mixtures}")
-    for potion_type in potion_mixtures:
+    shuffled_mixtures = list(potion_mixtures)
+    random.shuffle(shuffled_mixtures)
+    print(f"potion mixtures: {shuffled_mixtures}")
+    for potion_type in shuffled_mixtures:
         print(f"potion type to bottle: {potion_type}")
         if remaining_capacity <= 0:
             break
-        possible = remaining_capacity
+        possible = min(remaining_capacity, 3)
 
         for available, amount in zip(remaining_liquids, potion_type):
             print(f"available: {available}")
