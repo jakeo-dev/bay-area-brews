@@ -115,11 +115,17 @@ def create_bottle_plan(
     available_liquids: Sequence[int],
     potion_mixtures: Sequence[Sequence[int]],
     maximum_potion_capacity: int,
+    current_potion_inventory: Sequence[Sequence[int]] = (),
 ) -> List[PotionMixes]:
     potions_to_make = []
     remaining_liquids = list(available_liquids)
     remaining_capacity = maximum_potion_capacity
-    shuffled_mixtures = list(potion_mixtures)
+    bottled_types = {tuple(potion_type) for potion_type in current_potion_inventory}
+    shuffled_mixtures = [
+        potion_type
+        for potion_type in potion_mixtures
+        if tuple(potion_type) not in bottled_types
+    ]
     random.shuffle(shuffled_mixtures)
     print(f"potion mixtures: {shuffled_mixtures}")
     for potion_type in shuffled_mixtures:
@@ -172,6 +178,7 @@ def get_bottle_plan():
             """)).all()
 
         potion_mixtures: List[List[int]] = []
+        current_potion_inventory: List[List[int]] = []
         for mixture in mixtures:
             balance = connection.execute(
                 sqlalchemy.text("""
@@ -181,14 +188,15 @@ def get_bottle_plan():
                 """),
                 {"resource_key": mixture.sku},
             ).scalar_one()
-            potion_mixtures.append(
-                [
-                    mixture.red_amount,
-                    mixture.green_amount,
-                    mixture.blue_amount,
-                    mixture.dark_amount,
-                ]
-            )
+            potion_type = [
+                mixture.red_amount,
+                mixture.green_amount,
+                mixture.blue_amount,
+                mixture.dark_amount,
+            ]
+            potion_mixtures.append(potion_type)
+            if balance > 0:
+                current_potion_inventory.append(potion_type)
 
     available_liquids = [
         inventory.get("red_ml", 0),
@@ -201,6 +209,7 @@ def get_bottle_plan():
         available_liquids=available_liquids,
         maximum_potion_capacity=50,
         potion_mixtures=potion_mixtures,
+        current_potion_inventory=current_potion_inventory,
     )
 
 
