@@ -132,8 +132,10 @@ def create_barrel_plan(
         if barrel.price <= gold and any(amount > 0 for amount in barrel.potion_type)
     ]
     # sort by price per ml, lowest to highest
+    shuffled_wholesale_catalog = list(filtered_wholesale_catalog)
+    random.shuffle(shuffled_wholesale_catalog)
     sorted_wholesale_catalog = sorted(
-        filtered_wholesale_catalog,
+        shuffled_wholesale_catalog,
         key=lambda barrel: barrel.price / barrel.ml_per_barrel,
     )
 
