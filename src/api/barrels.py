@@ -129,7 +129,13 @@ def create_barrel_plan(
     filtered_wholesale_catalog = [
         barrel
         for barrel in wholesale_catalog
-        if barrel.price <= gold and any(amount > 0 for amount in barrel.potion_type)
+        if barrel.price <= gold
+        and any(amount > 0 for amount in barrel.potion_type)
+        and all(
+            current_liquids[index] == 0
+            for index, amount in enumerate(barrel.potion_type)
+            if amount > 0
+        )
     ]
     # sort by price per ml, lowest to highest
     shuffled_wholesale_catalog = list(filtered_wholesale_catalog)
@@ -139,19 +145,29 @@ def create_barrel_plan(
         key=lambda barrel: barrel.price / barrel.ml_per_barrel,
     )
 
-    # return an empty list if no good barrels found
     current_plan = []
-
     current_plan_cost = 0
-    i = 0
-    while (
-        i < len(sorted_wholesale_catalog)
-        and current_plan_cost + sorted_wholesale_catalog[i].price <= gold
-    ):
-        barrel = sorted_wholesale_catalog[i]
-        current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
-        current_plan_cost += barrel.price
-        i += 1
+
+    # first choose one barrel for each r, g, b, d
+    selected_skus = set()
+    for component in range(4):
+        component_barrels = [
+            barrel
+            for barrel in sorted_wholesale_catalog
+            if barrel.sku not in selected_skus and barrel.potion_type[component] > 0
+        ]
+        for barrel in component_barrels:
+            if current_plan_cost + barrel.price <= gold:
+                current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
+                current_plan_cost += barrel.price
+                selected_skus.add(barrel.sku)
+                break
+
+    # spend remaining gold on barrels with best cost/ml
+    for barrel in sorted_wholesale_catalog:
+        if barrel.sku not in selected_skus and current_plan_cost + barrel.price <= gold:
+            current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
+            current_plan_cost += barrel.price
 
     # try to get dark barrel if its in the catalog now
     """ if current_liquids[target_component] < 1000:
