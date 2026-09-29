@@ -128,6 +128,7 @@ def create_bottle_plan(
     ]
     random.shuffle(shuffled_mixtures)
     print(f"potion mixtures: {shuffled_mixtures}")
+
     for potion_type in shuffled_mixtures:
         print(f"potion type to bottle: {potion_type}")
         if remaining_capacity <= 0:

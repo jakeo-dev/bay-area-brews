@@ -52,17 +52,49 @@ def search_orders(
     """
     Search for cart line items by customer name and/or potion sku.
     """
+    sort_columns = {
+        SearchSortOptions.customer_name: "carts.customer_name",
+        SearchSortOptions.item_sku: "potion_mixtures.sku",
+        SearchSortOptions.line_item_total: "line_item_total",
+        SearchSortOptions.timestamp: "carts.created_at",
+    }
+
+    with db.engine.begin() as connection:
+        rows = connection.execute(
+            sqlalchemy.text(f"""
+                SELECT
+                    cart_items.id AS line_item_id,
+                    potion_mixtures.sku AS item_sku,
+                    carts.customer_name,
+                    cart_items.quantity * potion_mixtures.price AS line_item_total,
+                    carts.created_at AS timestamp
+                FROM carts
+                JOIN cart_items ON carts.id = cart_items.cart_id
+                JOIN potion_mixtures ON cart_items.potion_mixture_id = potion_mixtures.id
+                WHERE (:customer_name = '' OR carts.customer_name ILIKE :customer_filter)
+                  AND (:potion_sku = '' OR potion_mixtures.sku ILIKE :potion_filter)
+                ORDER BY {sort_columns[sort_col]} {"ASC" if sort_order == SearchSortOrder.asc else "DESC"}
+            """),
+            {
+                "customer_name": customer_name,
+                "potion_sku": potion_sku,
+                "customer_filter": f"%{customer_name}%",
+                "potion_filter": f"%{potion_sku}%",
+            },
+        ).all()
+
     return SearchResponse(
         previous=None,
         next=None,
         results=[
             LineItem(
-                line_item_id=1,
-                item_sku="1 oblivion potion",
-                customer_name="Scaramouche",
-                line_item_total=50,
-                timestamp="2021-01-01T00:00:00Z",
+                line_item_id=row.line_item_id,
+                item_sku=row.item_sku,
+                customer_name=row.customer_name,
+                line_item_total=row.line_item_total,
+                timestamp=row.timestamp.isoformat(),
             )
+            for row in rows
         ],
     )
 
