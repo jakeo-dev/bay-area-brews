@@ -137,13 +137,18 @@ def create_barrel_plan(
             if amount > 0
         )
     ]
+    print(f"filtered_wholesale_catalog: {filtered_wholesale_catalog}")
+
     # sort by price per ml, lowest to highest
     shuffled_wholesale_catalog = list(filtered_wholesale_catalog)
     random.shuffle(shuffled_wholesale_catalog)
+    print(f"shuffled_wholesale_catalog: {shuffled_wholesale_catalog}")
+
     sorted_wholesale_catalog = sorted(
         shuffled_wholesale_catalog,
         key=lambda barrel: barrel.price / barrel.ml_per_barrel,
     )
+    print(f"sorted_wholesale_catalog: {sorted_wholesale_catalog}")
 
     current_plan = []
     current_plan_cost = 0
