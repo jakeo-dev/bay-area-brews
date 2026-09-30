@@ -33,10 +33,6 @@ def get_inventory():
     """
 
     with db.engine.begin() as connection:
-        potion_rows = connection.execute(sqlalchemy.text("""
-            SELECT sku, name
-            FROM potion_mixtures
-        """)).all()
         inventory_rows = connection.execute(sqlalchemy.text("""
             SELECT resource_key, COALESCE(SUM(amount), 0) AS balance
             FROM ledger_entries
@@ -45,29 +41,14 @@ def get_inventory():
         """)).all()
         inventory = {row.resource_key: row.balance for row in inventory_rows}
 
-        potion_numbers = {}
-
-        for row in potion_rows:
-            thing = connection.execute(
-                sqlalchemy.text("""
-                    SELECT COALESCE(SUM(amount), 0) AS balance
-                    FROM ledger_entries
-                    WHERE resource_type = 'potion' AND resource_key = :resource_key
-                """),
-                {"resource_key": row.sku},
-            ).scalar_one()
-            potion_numbers[row.name] = thing
+        total_potions = connection.execute(sqlalchemy.text("""
+                SELECT COALESCE(SUM(amount), 0) AS total
+                FROM ledger_entries
+                WHERE resource_type = 'potion'
+            """)).scalar_one()
 
     return InventoryAudit(
-        number_of_potions=potion_numbers.get("Lemonade", 0)
-        + potion_numbers.get("Water", 0)
-        + potion_numbers.get("Cappuccino", 0)
-        + potion_numbers.get("Hot chocolate", 0)
-        + potion_numbers.get("Grape juice", 0)
-        + potion_numbers.get("Red potion", 0)
-        + potion_numbers.get("Green potion", 0)
-        + potion_numbers.get("Blue potion", 0)
-        + potion_numbers.get("Dark potion", 0),
+        number_of_potions=total_potions,
         ml_in_barrels=inventory.get("red_ml", 0)
         + inventory.get("green_ml", 0)
         + inventory.get("blue_ml", 0)
