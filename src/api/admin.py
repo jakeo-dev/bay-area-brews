@@ -73,5 +73,3 @@ def reset():
                 if amount != 0
             ],
         )
-        connection.execute(sqlalchemy.text("DELETE FROM cart_items"))
-        connection.execute(sqlalchemy.text("DELETE FROM carts"))
