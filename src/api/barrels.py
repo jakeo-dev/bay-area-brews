@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import json
 import random
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field, field_validator
@@ -68,15 +69,22 @@ def post_deliver_barrels(barrels_delivered: List[Barrel], order_id: int):
     print(f"barrels delivered: {barrels_delivered} order_id: {order_id}")
 
     delivery = calculate_barrel_summary(barrels_delivered)
+    delivered_response = json.dumps(
+        [barrel.model_dump() for barrel in barrels_delivered]
+    )
 
     with db.engine.begin() as connection:
         transaction_id = connection.execute(
             sqlalchemy.text("""
             INSERT INTO transactions (request_type, request_id, response)
-            VALUES (:request_type, :request_id, NULL)
+            VALUES (:request_type, :request_id, CAST(:response AS jsonb))
             RETURNING id
         """),
-            {"request_type": "barrel_delivery", "request_id": order_id},
+            {
+                "request_type": "barrel_delivery",
+                "request_id": order_id,
+                "response": delivered_response,
+            },
         ).scalar_one()
 
         liquid_columns = ("red_ml", "green_ml", "blue_ml", "dark_ml")
