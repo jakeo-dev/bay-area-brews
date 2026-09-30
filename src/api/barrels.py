@@ -134,12 +134,8 @@ def create_barrel_plan(
     print(f"filtered_wholesale_catalog: {filtered_wholesale_catalog}")
 
     # sort by price per ml, lowest to highest
-    shuffled_wholesale_catalog = list(filtered_wholesale_catalog)
-    random.shuffle(shuffled_wholesale_catalog)
-    print(f"shuffled_wholesale_catalog: {shuffled_wholesale_catalog}")
-
     sorted_wholesale_catalog = sorted(
-        shuffled_wholesale_catalog,
+        filtered_wholesale_catalog,
         key=lambda barrel: (
             any(
                 current_liquids[index] > 0
@@ -174,6 +170,7 @@ def create_barrel_plan(
                 current_plan_cost + barrel.price <= gold
                 and current_plan_ml + barrel.ml_per_barrel <= max_barrel_capacity
             ):
+                print(f"barrel in plan: {barrel.sku}")
                 current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
                 current_plan_cost += barrel.price
                 current_plan_ml += barrel.ml_per_barrel
@@ -187,6 +184,7 @@ def create_barrel_plan(
             and current_plan_cost + barrel.price <= gold
             and current_plan_ml + barrel.ml_per_barrel <= max_barrel_capacity
         ):
+            print(f"barrel in plan: {barrel.sku}")
             current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
             current_plan_cost += barrel.price
             current_plan_ml += barrel.ml_per_barrel
