@@ -137,7 +137,9 @@ def create_barrel_plan(
     filtered_wholesale_catalog = [
         barrel
         for barrel in wholesale_catalog
-        if barrel.price <= gold and any(amount > 0 for amount in barrel.potion_type)
+        if barrel.price <= gold
+        and any(amount > 0 for amount in barrel.potion_type)
+        and "JUNK" not in barrel.sku
     ]
     print(f"filtered_wholesale_catalog: {filtered_wholesale_catalog}")
 
