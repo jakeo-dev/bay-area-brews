@@ -180,7 +180,7 @@ def create_barrel_plan(
                 current_plan_cost + barrel.price <= gold
                 and current_plan_ml + barrel.ml_per_barrel <= max_barrel_capacity
             ):
-                print(f"barrel in plan: {barrel.sku}")
+                print(f"A barrel in plan: {barrel.sku}")
                 current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
                 current_plan_cost += barrel.price
                 current_plan_ml += barrel.ml_per_barrel
@@ -194,10 +194,14 @@ def create_barrel_plan(
             and current_plan_cost + barrel.price <= gold
             and current_plan_ml + barrel.ml_per_barrel <= max_barrel_capacity
         ):
-            print(f"barrel in plan: {barrel.sku}")
+            print(f"B barrel in plan: {barrel.sku}")
             current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
             current_plan_cost += barrel.price
             current_plan_ml += barrel.ml_per_barrel
+
+    print(f"final barrel plan: {current_plan}")
+    print(f"final plan cost: {current_plan_cost}")
+    print(f"final plan ml: {current_plan_ml}")
 
     # try to get dark barrel if its in the catalog now
     """ if current_liquids[target_component] < 1000:
