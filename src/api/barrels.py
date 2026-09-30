@@ -129,13 +129,7 @@ def create_barrel_plan(
     filtered_wholesale_catalog = [
         barrel
         for barrel in wholesale_catalog
-        if barrel.price <= gold
-        and any(amount > 0 for amount in barrel.potion_type)
-        and all(
-            current_liquids[index] == 0
-            for index, amount in enumerate(barrel.potion_type)
-            if amount > 0
-        )
+        if barrel.price <= gold and any(amount > 0 for amount in barrel.potion_type)
     ]
     print(f"filtered_wholesale_catalog: {filtered_wholesale_catalog}")
 
@@ -146,7 +140,14 @@ def create_barrel_plan(
 
     sorted_wholesale_catalog = sorted(
         shuffled_wholesale_catalog,
-        key=lambda barrel: barrel.price / barrel.ml_per_barrel,
+        key=lambda barrel: (
+            any(
+                current_liquids[index] > 0
+                for index, amount in enumerate(barrel.potion_type)
+                if amount > 0
+            ),
+            barrel.price / barrel.ml_per_barrel,
+        ),
     )
     print(f"sorted_wholesale_catalog: {sorted_wholesale_catalog}")
 
@@ -159,7 +160,13 @@ def create_barrel_plan(
         component_barrels = [
             barrel
             for barrel in sorted_wholesale_catalog
-            if barrel.sku not in selected_skus and barrel.potion_type[component] > 0
+            if barrel.sku not in selected_skus
+            and barrel.potion_type[component] > 0
+            and not any(
+                current_liquids[index] > 0
+                for index, amount in enumerate(barrel.potion_type)
+                if amount > 0
+            )
         ]
         for barrel in component_barrels:
             if current_plan_cost + barrel.price <= gold:
