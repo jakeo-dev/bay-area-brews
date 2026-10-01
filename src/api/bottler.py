@@ -133,7 +133,7 @@ def create_bottle_plan(
         print(f"potion type to bottle: {potion_type}")
         if remaining_capacity <= 0:
             break
-        possible = min(remaining_capacity, 3)
+        possible = min(remaining_capacity, 10)
 
         for available, amount in zip(remaining_liquids, potion_type):
             if amount:
