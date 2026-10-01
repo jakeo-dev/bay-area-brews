@@ -143,9 +143,13 @@ def create_barrel_plan(
     ]
     print(f"filtered_wholesale_catalog: {filtered_wholesale_catalog}")
 
-    # sort by price per ml, lowest to highest
+    # shuffle potential barrels
+    shuffled_wholesale_catalog = list(filtered_wholesale_catalog)
+    random.shuffle(shuffled_wholesale_catalog)
+
+    # prioritize ml that isnt already bought, and then price per ml
     sorted_wholesale_catalog = sorted(
-        filtered_wholesale_catalog,
+        shuffled_wholesale_catalog,
         key=lambda barrel: (
             any(
                 current_liquids[index] > 0
