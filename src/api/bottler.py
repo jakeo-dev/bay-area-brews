@@ -121,26 +121,29 @@ def create_bottle_plan(
     remaining_liquids = list(available_liquids)
     remaining_capacity = maximum_potion_capacity
     bottled_types = {tuple(potion_type) for potion_type in current_potion_inventory}
-    shuffled_mixtures = [
-        potion_type
-        for potion_type in potion_mixtures
-        if tuple(potion_type) not in bottled_types
-    ]
+    shuffled_mixtures = list(potion_mixtures)
     random.shuffle(shuffled_mixtures)
     shuffled_mixtures.sort(
-        key=lambda potion_type: sum(amount > 0 for amount in potion_type) <= 1
+        key=lambda potion_type: (
+            tuple(potion_type) in bottled_types,
+            sum(amount > 0 for amount in potion_type) <= 1,
+        )
     )
-    print(f"potion mixtures: {shuffled_mixtures}")
+    print(f"shuffled_mixtures: {shuffled_mixtures}")
 
     for potion_type in shuffled_mixtures:
         print(f"potion type to bottle: {potion_type}")
         if remaining_capacity <= 0:
             break
-        possible = min(remaining_capacity, 10)
+        possible = min(
+            remaining_capacity,
+            10 if tuple(potion_type) not in bottled_types else 5,
+        )
 
         for available, amount in zip(remaining_liquids, potion_type):
             if amount:
                 possible = min(possible, available // amount)
+
         if possible > 0:
             print(f"possible greater than 0, possible {possible}")
             potions_to_make.append(
@@ -182,6 +185,14 @@ def get_bottle_plan():
         potion_mixtures: List[List[int]] = []
         current_potion_inventory: List[List[int]] = []
         for mixture in mixtures:
+            potion_type = [
+                mixture.red_amount,
+                mixture.green_amount,
+                mixture.blue_amount,
+                mixture.dark_amount,
+            ]
+            potion_mixtures.append(potion_type)
+
             balance = connection.execute(
                 sqlalchemy.text("""
                     SELECT COALESCE(SUM(amount), 0) AS balance
@@ -190,13 +201,6 @@ def get_bottle_plan():
                 """),
                 {"resource_key": mixture.sku},
             ).scalar_one()
-            potion_type = [
-                mixture.red_amount,
-                mixture.green_amount,
-                mixture.blue_amount,
-                mixture.dark_amount,
-            ]
-            potion_mixtures.append(potion_type)
             if balance > 0:
                 current_potion_inventory.append(potion_type)
 
@@ -207,6 +211,7 @@ def get_bottle_plan():
         inventory.get("dark_ml", 0),
     ]
     print(f"available_liquids: {available_liquids}")
+    print(f"potion_mixtures: {potion_mixtures}")
     return create_bottle_plan(
         available_liquids=available_liquids,
         maximum_potion_capacity=50,
