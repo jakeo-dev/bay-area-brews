@@ -127,6 +127,9 @@ def create_bottle_plan(
         if tuple(potion_type) not in bottled_types
     ]
     random.shuffle(shuffled_mixtures)
+    shuffled_mixtures.sort(
+        key=lambda potion_type: sum(amount > 0 for amount in potion_type) <= 1
+    )
     print(f"potion mixtures: {shuffled_mixtures}")
 
     for potion_type in shuffled_mixtures:
