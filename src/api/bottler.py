@@ -127,6 +127,7 @@ def create_bottle_plan(
         key=lambda potion_type: (
             tuple(potion_type) in bottled_types,
             sum(amount > 0 for amount in potion_type) <= 1,
+            -potion_type[0],
         )
     )
     print(f"shuffled_mixtures: {shuffled_mixtures}")
