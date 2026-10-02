@@ -216,8 +216,10 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
         transaction_id = connection.execute(
             sqlalchemy.text("""
-            INSERT INTO transactions (request_type, request_id, response)
-            VALUES (:request_type, :request_id, NULL)
+            INSERT INTO transactions (request_type, request_id, response, day, hour)
+            SELECT :request_type, :request_id, NULL, day, hour
+            FROM game_time
+            WHERE id = 1
             RETURNING id
         """),
             {"request_type": "checkout", "request_id": cart_id},

@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from src.api import auth
+from src import database as db
+import sqlalchemy
 
 router = APIRouter(
     prefix="/info",
@@ -19,5 +21,13 @@ def post_time(timestamp: Timestamp):
     """
     Shares what the latest time (in game time) is.
     """
-    # TODO: Record day and time of the current tick to associate with later calls
-    pass
+    with db.engine.begin() as connection:
+        connection.execute(
+            sqlalchemy.text("""
+                UPDATE game_time
+                SET day = :day, hour = :hour
+                WHERE id = 1
+            """),
+            timestamp.model_dump(),
+        )
+    return timestamp.day, timestamp.hour
