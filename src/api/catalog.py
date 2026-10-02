@@ -41,6 +41,7 @@ def create_catalog(rows: Sequence[sqlalchemy.Row]) -> List[CatalogItem]:
         if row.number > 0
     ]
     random.shuffle(full_catalog)
+    full_catalog.sort(key=lambda item: -item.potion_type[0])
 
     filtered_catalog = full_catalog[:6]
     return filtered_catalog
