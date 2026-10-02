@@ -165,9 +165,11 @@ def create_barrel_plan(
     current_plan_cost = 0
     current_plan_ml = sum(current_liquids)
 
-    # first choose one barrel for each r, g, b, d
+    # first choose one barrel for each r, g, b, d (randomly)
     selected_skus = set()
-    for component in range(4):
+    components = list(range(4))
+    random.shuffle(components)
+    for component in components:
         component_barrels = [
             barrel
             for barrel in sorted_wholesale_catalog
