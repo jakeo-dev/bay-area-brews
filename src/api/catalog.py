@@ -61,6 +61,5 @@ def get_catalog() -> List[CatalogItem]:
             GROUP BY potion_mixtures.id
             ORDER BY potion_mixtures.id
         """)).all()
-    # do this smarter later, dont just limit 6
 
     return create_catalog(rows)
