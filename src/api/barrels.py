@@ -147,10 +147,11 @@ def create_barrel_plan(
     shuffled_wholesale_catalog = list(filtered_wholesale_catalog)
     random.shuffle(shuffled_wholesale_catalog)
 
-    # Prioritize red-containing barrels, then unstocked liquid, then price per ml.
+    # prioritize dark barrels, then red, unstocked liquid, and price per ml.
     sorted_wholesale_catalog = sorted(
         shuffled_wholesale_catalog,
         key=lambda barrel: (
+            not barrel.potion_type[3] > 0,
             not barrel.potion_type[0] > 0,
             any(
                 current_liquids[index] > 0
@@ -166,21 +167,24 @@ def create_barrel_plan(
     current_plan_cost = 0
     current_plan_ml = sum(current_liquids)
 
-    # first choose one barrel for each r, g, b, d (first red, then green, blue, dark in random order)
+    # first choose dark, then red, then the remaining components in random order.
     selected_skus = set()
-    components = list(range(1, 4))
+    components = list(range(1, 3))
     random.shuffle(components)
-    components.insert(0, 0)
+    components = [3, 0, *components]
     for component in components:
         component_barrels = [
             barrel
             for barrel in sorted_wholesale_catalog
             if barrel.sku not in selected_skus
             and barrel.potion_type[component] > 0
-            and not any(
-                current_liquids[index] > 0
-                for index, amount in enumerate(barrel.potion_type)
-                if amount > 0
+            and (
+                component == 3
+                or not any(
+                    current_liquids[index] > 0
+                    for index, amount in enumerate(barrel.potion_type)
+                    if amount > 0
+                )
             )
         ]
         for barrel in component_barrels:
