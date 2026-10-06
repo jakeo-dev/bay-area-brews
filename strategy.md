@@ -11,3 +11,10 @@ Barrels should be purchased based on which have the lowest cost per ml. The type
 ### Selling potions
 
 Potions should be offered depending on when demand for certain types is the highest. For example, if the red potion is most popular on Crownday, more potions with more red ml should be offered then. Right now, there are only nine possible potions that can be offered, so this should also be expanded on. This will increase gold by allowing customers to buy more of the potions that they are looking for.
+
+### oct 1 update
+
+warrior: red bias (red potions)
+seer: green bias (green potion)
+sage: green bias? (white potion, kale soda)
+priest: blue bias? (blueberry juice, fig soda)

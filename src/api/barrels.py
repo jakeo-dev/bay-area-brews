@@ -166,6 +166,7 @@ def create_barrel_plan(
     current_plan = []
     current_plan_cost = 0
     current_plan_ml = sum(current_liquids)
+    barrel_budget = gold // 2
 
     # first choose dark, then red, then the remaining components in random order.
     selected_skus = set()
@@ -189,7 +190,7 @@ def create_barrel_plan(
         ]
         for barrel in component_barrels:
             if (
-                current_plan_cost + barrel.price <= gold
+                current_plan_cost + barrel.price <= barrel_budget
                 and current_plan_ml + barrel.ml_per_barrel <= max_barrel_capacity
             ):
                 print(f"A barrel in plan: {barrel.sku}")
@@ -203,7 +204,7 @@ def create_barrel_plan(
     for barrel in sorted_wholesale_catalog:
         if (
             barrel.sku not in selected_skus
-            and current_plan_cost + barrel.price <= gold
+            and current_plan_cost + barrel.price <= barrel_budget
             and current_plan_ml + barrel.ml_per_barrel <= max_barrel_capacity
         ):
             print(f"B barrel in plan: {barrel.sku}")
