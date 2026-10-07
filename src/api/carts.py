@@ -74,12 +74,14 @@ def search_orders(
                 WHERE (:customer_name = '' OR carts.customer_name ILIKE :customer_filter)
                   AND (:potion_sku = '' OR potion_mixtures.sku ILIKE :potion_filter)
                 ORDER BY {sort_columns[sort_col]} {"ASC" if sort_order == SearchSortOrder.asc else "DESC"}
+                OFFSET search_page
             """),
             {
                 "customer_name": customer_name,
                 "potion_sku": potion_sku,
                 "customer_filter": f"%{customer_name}%",
                 "potion_filter": f"%{potion_sku}%",
+                "search_page": search_page,
             },
         ).all()
 
