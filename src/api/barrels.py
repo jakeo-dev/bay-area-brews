@@ -167,7 +167,18 @@ def create_barrel_plan(
     current_plan = []
     current_plan_cost = 0
     current_plan_ml = sum(current_liquids)
+    current_green_blue_ml = current_liquids[1] + current_liquids[2]
     barrel_budget = gold // 2  # max budget is half of current gold
+
+    def fits_ml_limits(barrel: Barrel) -> bool:
+        barrel_ml = barrel.ml_per_barrel
+        green_blue_ml = barrel_ml * sum(barrel.potion_type[1:3])
+        projected_total_ml = current_plan_ml + barrel_ml
+        projected_green_blue_ml = current_green_blue_ml + green_blue_ml
+        return (
+            projected_total_ml <= max_barrel_capacity
+            and projected_green_blue_ml * 2 <= projected_total_ml
+        )
 
     # first choose dark, then red, then the remaining components in random order.
     selected_skus = set()
@@ -190,14 +201,16 @@ def create_barrel_plan(
             )
         ]
         for barrel in component_barrels:
-            if (
-                current_plan_cost + barrel.price <= barrel_budget
-                and current_plan_ml + barrel.ml_per_barrel <= max_barrel_capacity
+            if current_plan_cost + barrel.price <= barrel_budget and fits_ml_limits(
+                barrel
             ):
                 print(f"A barrel in plan: {barrel.sku}")
                 current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
                 current_plan_cost += barrel.price
                 current_plan_ml += barrel.ml_per_barrel
+                current_green_blue_ml += barrel.ml_per_barrel * sum(
+                    barrel.potion_type[1:3]
+                )
                 selected_skus.add(barrel.sku)
                 break
 
@@ -206,12 +219,13 @@ def create_barrel_plan(
         if (
             barrel.sku not in selected_skus
             and current_plan_cost + barrel.price <= barrel_budget
-            and current_plan_ml + barrel.ml_per_barrel <= max_barrel_capacity
+            and fits_ml_limits(barrel)
         ):
             print(f"B barrel in plan: {barrel.sku}")
             current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
             current_plan_cost += barrel.price
             current_plan_ml += barrel.ml_per_barrel
+            current_green_blue_ml += barrel.ml_per_barrel * sum(barrel.potion_type[1:3])
 
     print(f"final barrel plan: {current_plan}")
     print(f"final plan cost: {current_plan_cost}")
