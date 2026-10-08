@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from decimal import Decimal
 import json
 import random
 from fastapi import APIRouter, Depends, status
@@ -171,8 +172,8 @@ def create_barrel_plan(
     barrel_budget = gold // 2  # max budget is half of current gold
 
     def fits_ml_limits(barrel: Barrel) -> bool:
-        barrel_ml = barrel.ml_per_barrel
-        green_blue_ml = barrel_ml * sum(barrel.potion_type[1:3])
+        barrel_ml = Decimal(barrel.ml_per_barrel)
+        green_blue_ml = barrel_ml * Decimal(str(sum(barrel.potion_type[1:3])))
         projected_total_ml = current_plan_ml + barrel_ml
         projected_green_blue_ml = current_green_blue_ml + green_blue_ml
         return (
@@ -207,9 +208,9 @@ def create_barrel_plan(
                 print(f"A barrel in plan: {barrel.sku}")
                 current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
                 current_plan_cost += barrel.price
-                current_plan_ml += barrel.ml_per_barrel
-                current_green_blue_ml += barrel.ml_per_barrel * sum(
-                    barrel.potion_type[1:3]
+                current_plan_ml += Decimal(barrel.ml_per_barrel)
+                current_green_blue_ml += Decimal(barrel.ml_per_barrel) * Decimal(
+                    str(sum(barrel.potion_type[1:3]))
                 )
                 selected_skus.add(barrel.sku)
                 break
@@ -224,8 +225,10 @@ def create_barrel_plan(
             print(f"B barrel in plan: {barrel.sku}")
             current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
             current_plan_cost += barrel.price
-            current_plan_ml += barrel.ml_per_barrel
-            current_green_blue_ml += barrel.ml_per_barrel * sum(barrel.potion_type[1:3])
+            current_plan_ml += Decimal(barrel.ml_per_barrel)
+            current_green_blue_ml += Decimal(barrel.ml_per_barrel) * Decimal(
+                str(sum(barrel.potion_type[1:3]))
+            )
 
     print(f"final barrel plan: {current_plan}")
     print(f"final plan cost: {current_plan_cost}")
