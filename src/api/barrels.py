@@ -166,7 +166,7 @@ def create_barrel_plan(
     current_plan = []
     current_plan_cost = 0
     current_plan_ml = sum(current_liquids)
-    barrel_budget = gold // 2
+    barrel_budget = gold // 2  # max budget is half of current gold
 
     # first choose dark, then red, then the remaining components in random order.
     selected_skus = set()
@@ -266,9 +266,17 @@ def get_wholesale_purchase_plan(wholesale_catalog: List[Barrel]):
         """)).all()
         inventory = {row.resource_key: row.sum for row in inventory_rows}
 
+        capacity_rows = connection.execute(sqlalchemy.text("""
+            SELECT resource_key, COALESCE(SUM(amount), 0) AS sum
+            FROM ledger_entries
+            WHERE resource_type = 'capacity'
+            GROUP BY resource_key
+        """)).all()
+        capacity = {row.resource_key: row.sum for row in capacity_rows}
+
     return create_barrel_plan(
         gold=inventory.get("gold", 0),
-        max_barrel_capacity=10000,
+        max_barrel_capacity=(capacity.get("ml", 0) + 1) * 10000,
         current_liquids=[
             inventory.get("red_ml", 0),
             inventory.get("green_ml", 0),
