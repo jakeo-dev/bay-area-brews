@@ -66,6 +66,8 @@ def get_capacity_plan():
     - Start with 1 capacity for 50 potions and 1 capacity for 10,000 ml of potion.
     - Each additional capacity unit costs 1000 gold.
     """
+    print("get capacity plan attempt")
+
     with db.engine.begin() as connection:
         total_ml = connection.execute(sqlalchemy.text("""
             SELECT COALESCE(SUM(amount), 0)
