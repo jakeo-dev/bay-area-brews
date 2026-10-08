@@ -69,28 +69,46 @@ def get_capacity_plan():
     print("get capacity plan attempt")
 
     with db.engine.begin() as connection:
-        total_ml = connection.execute(sqlalchemy.text("""
-            SELECT COALESCE(SUM(amount), 0)
+        inventory_rows = connection.execute(sqlalchemy.text("""
+            SELECT resource_key, COALESCE(SUM(amount), 0) AS sum
             FROM ledger_entries
-            WHERE resource_type = 'inventory' AND (resource_key = 'red_ml' OR resource_key = 'green_ml' OR resource_key = 'blue_ml' OR resource_key = 'dark_ml')
-        """)).scalar_one()
+            WHERE resource_type = 'inventory'
+            GROUP BY resource_key
+        """)).all()
+        inventory = {row.resource_key: row.sum for row in inventory_rows}
 
-        total_gold = connection.execute(sqlalchemy.text("""
-            SELECT COALESCE(SUM(amount), 0) AS balance
+        capacity_rows = connection.execute(sqlalchemy.text("""
+            SELECT resource_key, COALESCE(SUM(amount), 0) AS sum
             FROM ledger_entries
-            WHERE resource_type = 'inventory' AND resource_key = 'gold'
-        """)).scalar_one()
+            WHERE resource_type = 'capacity'
+            GROUP BY resource_key
+        """)).all()
+        capacity = {row.resource_key: row.sum for row in capacity_rows}
 
-        additional_ml_capacity = connection.execute(sqlalchemy.text("""
-            SELECT COALESCE(SUM(amount), 0)
-            FROM ledger_entries
-            WHERE resource_type = 'capacity' AND resource_key = 'ml'
-        """)).scalar_one()
+        total_gold = inventory.get("gold", 0)
+        total_ml = (
+            inventory.get("red_ml", 0)
+            + inventory.get("green_ml", 0)
+            + inventory.get("blue_ml", 0)
+            + inventory.get("dark_ml", 0)
+        )
+        total_potions = sum(
+            amount for sku, amount in inventory.items() if sku.endswith("_0")
+        )
+        additional_ml_capacity = capacity.get("ml", 0)
+        additional_potion_capacity = capacity.get("potion", 0)
 
     current_ml_limit = (1 + additional_ml_capacity) * 10000
-    new_ml_capacity = int(total_ml * 10 > current_ml_limit * 9 and total_gold >= 1500)
+    current_potion_limit = (1 + additional_potion_capacity) * 10000
 
-    return CapacityPlan(potion_capacity=0, ml_capacity=new_ml_capacity)
+    new_ml_capacity = int(total_ml * 10 > current_ml_limit * 9 and total_gold >= 7500)
+    new_potion_capacity = int(
+        total_potions * 10 > current_potion_limit * 9 and total_gold >= 7500
+    )
+
+    return CapacityPlan(
+        potion_capacity=new_potion_capacity, ml_capacity=new_ml_capacity
+    )
 
 
 @router.post("/deliver/{order_id}", status_code=status.HTTP_204_NO_CONTENT)

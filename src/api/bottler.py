@@ -182,6 +182,11 @@ def get_bottle_plan():
                 FROM ledger_entries
                 WHERE resource_type = 'potion'
             """)).scalar_one()
+        additional_potion_capacity = connection.execute(sqlalchemy.text("""
+                SELECT COALESCE(SUM(amount), 0)
+                FROM ledger_entries
+                WHERE resource_type = 'capacity' AND resource_key = 'potion'
+            """)).scalar_one()
         mixtures = connection.execute(sqlalchemy.text("""
             SELECT sku, red_amount, green_amount, blue_amount, dark_amount
             FROM potion_mixtures
@@ -218,7 +223,8 @@ def get_bottle_plan():
     ]
     print(f"available_liquids: {available_liquids}")
     print(f"potion_mixtures: {potion_mixtures}")
-    remaining_potion_capacity = max(0, 50 - current_potion_count)
+    current_potion_limit = (1 + additional_potion_capacity) * 50
+    remaining_potion_capacity = max(0, current_potion_limit - current_potion_count)
     return create_bottle_plan(
         available_liquids=available_liquids,
         maximum_potion_capacity=remaining_potion_capacity,
