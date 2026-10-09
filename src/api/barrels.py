@@ -142,6 +142,7 @@ def create_barrel_plan(
         and any(amount > 0 for amount in barrel.potion_type)
         and "JUNK" not in barrel.sku
         and "MINI" not in barrel.sku
+        and barrel.potion_type[0] > 0
     ]
     print(f"filtered_wholesale_catalog: {filtered_wholesale_catalog}")
 
@@ -181,11 +182,9 @@ def create_barrel_plan(
             and projected_green_blue_ml * 2 <= projected_total_ml
         )
 
-    # first choose dark, then red, then the remaining components in random order.
+    # Only choose a red-containing barrel in the first selection pass.
     selected_skus = set()
-    components = list(range(1, 3))
-    random.shuffle(components)
-    components = [3, 0, *components]
+    components = [0]
     for component in components:
         component_barrels = [
             barrel
