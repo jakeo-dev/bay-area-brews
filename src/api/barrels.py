@@ -177,7 +177,7 @@ def create_barrel_plan(
     current_plan_cost = 0
     current_plan_ml = sum(current_liquids)
     current_green_blue_ml = current_liquids[1] + current_liquids[2]
-    barrel_budget = gold // 2  # max budget is half of current gold
+    barrel_budget = gold // 10  # max budget is one tenth of current gold
 
     def fits_ml_limits(barrel: Barrel) -> bool:
         barrel_ml = Decimal(barrel.ml_per_barrel)
@@ -235,10 +235,7 @@ def create_barrel_plan(
         print(
             f"Checking {barrel.sku}: Cost={barrel.price} (Budget: {barrel_budget}), Fits ML={fits_ml_limits(barrel)}"
         )
-        if (
-            current_plan_cost + barrel.price <= barrel_budget
-            and fits_ml_limits(barrel)
-        ):
+        if current_plan_cost + barrel.price <= barrel_budget and fits_ml_limits(barrel):
             print(f"barrel in plan: {barrel.sku}")
             existing_order = next(
                 (order for order in current_plan if order.sku == barrel.sku),
@@ -248,7 +245,7 @@ def create_barrel_plan(
                 existing_order.quantity += 1
             else:
                 current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
-            
+
             current_plan_cost += barrel.price
             current_plan_ml += Decimal(barrel.ml_per_barrel)
             current_green_blue_ml += Decimal(barrel.ml_per_barrel) * Decimal(
