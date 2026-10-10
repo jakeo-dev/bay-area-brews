@@ -134,6 +134,13 @@ def create_barrel_plan(
         f"gold: {gold}, max_barrel_capacity: {max_barrel_capacity}, current_liquids: {current_liquids}, wholesale_catalog: {wholesale_catalog}"
     )
 
+    expanded_wholesale_catalog = []
+    for barrel in wholesale_catalog:
+        expanded_wholesale_catalog.append(barrel)
+        if barrel.quantity > 2:
+            for i in range(barrel.quantity // 2):
+                expanded_wholesale_catalog.append(barrel)
+
     # filter by prices less than current gold
     filtered_wholesale_catalog = [
         barrel
