@@ -179,7 +179,14 @@ def create_barrel_plan(
         projected_green_blue_ml = current_green_blue_ml + green_blue_ml
         return (
             projected_total_ml <= max_barrel_capacity
-            and projected_green_blue_ml * 2 <= projected_total_ml
+            # make sure green-blue ml is limited to half of all ml if this barrel has green/blue
+            and (
+                projected_green_blue_ml * 2 <= projected_total_ml
+                if barrel.potion_type[0] <= 0.5
+                else True
+            )
+            # ONLY get red ml barrels right now
+            and barrel.potion_type[0] > 0.5
         )
 
     # Only choose a red-containing barrel in the first selection pass.
