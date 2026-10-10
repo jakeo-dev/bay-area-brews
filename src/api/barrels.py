@@ -184,7 +184,8 @@ def create_barrel_plan(
 
     # Only choose a red-containing barrel in the first selection pass.
     selected_skus = set()
-    components = [0]
+
+    """ components = [0]
     for component in components:
         component_barrels = [
             barrel
@@ -213,15 +214,19 @@ def create_barrel_plan(
                 )
                 selected_skus.add(barrel.sku)
                 break
+ """
 
     # spend remaining gold on barrels with best cost/ml
     for barrel in sorted_wholesale_catalog:
+        print(
+            f"Checking {barrel.sku}: Cost={barrel.price} (Budget: {barrel_budget}), Fits ML={fits_ml_limits(barrel)}"
+        )
         if (
             barrel.sku not in selected_skus
             and current_plan_cost + barrel.price <= barrel_budget
             and fits_ml_limits(barrel)
         ):
-            print(f"B barrel in plan: {barrel.sku}")
+            print(f"barrel in plan: {barrel.sku}")
             current_plan.append(BarrelOrder(sku=barrel.sku, quantity=1))
             current_plan_cost += barrel.price
             current_plan_ml += Decimal(barrel.ml_per_barrel)
