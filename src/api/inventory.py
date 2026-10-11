@@ -86,28 +86,32 @@ def get_capacity_plan():
         capacity = {row.resource_key: row.sum for row in capacity_rows}
 
         total_gold = inventory.get("gold", 0)
-        total_ml = (
-            inventory.get("red_ml", 0)
-            + inventory.get("green_ml", 0)
-            + inventory.get("blue_ml", 0)
-            + inventory.get("dark_ml", 0)
-        )
+        # total_ml = (
+        #     inventory.get("red_ml", 0)
+        #     + inventory.get("green_ml", 0)
+        #     + inventory.get("blue_ml", 0)
+        #     + inventory.get("dark_ml", 0)
+        # )
         total_potions = sum(
             amount for sku, amount in inventory.items() if sku.endswith("_0")
         )
-        additional_ml_capacity = capacity.get("ml", 0)
+        # additional_ml_capacity = capacity.get("ml", 0)
         additional_potion_capacity = capacity.get("potion", 0)
 
-    current_ml_limit = (1 + additional_ml_capacity) * 10000
+    # current_ml_limit = (1 + additional_ml_capacity) * 10000
     current_potion_limit = (1 + additional_potion_capacity) * 10000
 
-    new_ml_capacity = int(total_ml * 10 > current_ml_limit * 9 and total_gold >= 7500)
+    # new_ml_capacity = int(
+    #     total_ml * 10 > current_ml_limit * 9 and total_gold >= 7500
+    # )
     new_potion_capacity = int(
         total_potions * 10 > current_potion_limit * 9 and total_gold >= 7500
     )
 
     return CapacityPlan(
-        potion_capacity=new_potion_capacity, ml_capacity=new_ml_capacity
+        potion_capacity=new_potion_capacity,
+        # ml capacity increases are temporarily disabled.
+        ml_capacity=0,
     )
 
 
