@@ -121,12 +121,16 @@ def create_bottle_plan(
     remaining_liquids = list(available_liquids)
     remaining_capacity = maximum_potion_capacity
     bottled_types = {tuple(potion_type) for potion_type in current_potion_inventory}
-    shuffled_mixtures = list(potion_mixtures)
+
+    # filter out only red/green/blue potions
+    filtered_mixtures = [potion for potion in potion_mixtures if 100 not in potion]
+
+    shuffled_mixtures = list(filtered_mixtures)
     random.shuffle(shuffled_mixtures)
+
     shuffled_mixtures.sort(
         key=lambda potion_type: (
-            tuple(potion_type) in bottled_types,
-            sum(amount > 0 for amount in potion_type) <= 1,
+            -max(potion_type),
             -potion_type[0],
         )
     )
