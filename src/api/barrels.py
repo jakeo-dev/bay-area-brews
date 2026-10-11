@@ -177,7 +177,7 @@ def create_barrel_plan(
     current_plan_cost = 0
     current_plan_ml = sum(current_liquids)
     current_green_blue_ml = current_liquids[1] + current_liquids[2]
-    barrel_budget = gold // 20  # max budget is 1/20 of current gold
+    barrel_budget = gold // 50  # max budget is 1/50 of current gold
 
     def fits_ml_limits(barrel: Barrel) -> bool:
         barrel_ml = Decimal(barrel.ml_per_barrel)
