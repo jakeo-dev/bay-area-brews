@@ -245,10 +245,22 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             sqlalchemy.text("""
                 SELECT cart_items.quantity, potion_mixtures.sku AS sku,
                        potion_mixtures.price
-                FROM cart_items
-                JOIN potion_mixtures ON potion_mixtures.id = cart_items.potion_mixture_id
-                WHERE cart_items.cart_id = :cart_id
-            """),
+                               + CASE
+                                   WHEN game_time.hour IN (18, 20)
+                                        AND potion_mixtures.sku IN (
+                                            'ORANGE_JUICE_0',
+                                            'POMEGRANATE_SODA_0',
+                                            'LIME_JUICE_0',
+                                            'DIL_RED_POTION_0'
+                                        )
+                                   THEN 5
+                                   ELSE 0
+                                 END AS price
+                    FROM cart_items
+                    JOIN potion_mixtures ON potion_mixtures.id = cart_items.potion_mixture_id
+                    CROSS JOIN game_time
+                    WHERE cart_items.cart_id = :cart_id
+                """),
             {"cart_id": cart_id},
         ).all()
         for row in rows:

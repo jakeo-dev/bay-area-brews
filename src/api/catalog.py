@@ -55,10 +55,26 @@ def get_catalog() -> List[CatalogItem]:
     """
     with db.engine.begin() as connection:
         rows = connection.execute(sqlalchemy.text("""
-            SELECT potion_mixtures.sku, potion_mixtures.name, COALESCE(SUM(ledger_entries.amount), 0) AS number, potion_mixtures.price, potion_mixtures.red_amount, potion_mixtures.green_amount, potion_mixtures.blue_amount, potion_mixtures.dark_amount
+            SELECT potion_mixtures.sku, potion_mixtures.name,
+                   COALESCE(SUM(ledger_entries.amount), 0) AS number,
+                   potion_mixtures.price
+                       + CASE
+                           WHEN game_time.hour IN (18, 20)
+                                AND potion_mixtures.sku IN (
+                                    'ORANGE_JUICE_0',
+                                    'POMEGRANATE_SODA_0',
+                                    'LIME_JUICE_0',
+                                    'DIL_RED_POTION_0'
+                                )
+                           THEN 5
+                           ELSE 0
+                         END AS price,
+                   potion_mixtures.red_amount, potion_mixtures.green_amount,
+                   potion_mixtures.blue_amount, potion_mixtures.dark_amount
             FROM potion_mixtures
             LEFT JOIN ledger_entries ON ledger_entries.resource_type = 'potion' AND ledger_entries.resource_key = potion_mixtures.sku
-            GROUP BY potion_mixtures.id
+            CROSS JOIN game_time
+            GROUP BY potion_mixtures.id, game_time.hour
             ORDER BY potion_mixtures.id
         """)).all()
 
