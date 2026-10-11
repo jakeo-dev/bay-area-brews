@@ -192,7 +192,7 @@ def create_barrel_plan(
                 if barrel.potion_type[0] <= 0.5
                 else True
             )
-            # ONLY get red ml barrels right now
+            # ONLY get barrels with some amount of red ml
             and barrel.potion_type[0] > 0.2
         )
 

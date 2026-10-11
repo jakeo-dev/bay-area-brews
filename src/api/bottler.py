@@ -142,7 +142,7 @@ def create_bottle_plan(
             break
         possible = min(
             remaining_capacity,
-            10 if tuple(potion_type) not in bottled_types else 5,
+            20 if tuple(potion_type) not in bottled_types else 15,
         )
 
         for available, amount in zip(remaining_liquids, potion_type):
