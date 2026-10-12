@@ -18,7 +18,3 @@ warrior: red bias (red potions)
 seer: green bias (green potion)
 sage: green bias? (white potion, kale soda)
 priest: blue bias? (blueberry juice, fig soda)
-
-### oct 11 update
-
-at hours 18 and 20, more higher-level customers buy more potions
