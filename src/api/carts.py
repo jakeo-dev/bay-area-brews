@@ -81,7 +81,7 @@ def search_orders(
                 "potion_sku": potion_sku,
                 "customer_filter": f"%{customer_name}%",
                 "potion_filter": f"%{potion_sku}%",
-                "search_page": search_page,
+                "search_page": int(search_page or 0),
             },
         ).all()
 
