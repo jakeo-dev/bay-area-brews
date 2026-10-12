@@ -171,7 +171,7 @@ def create_barrel_plan(
             barrel.price / barrel.ml_per_barrel,
         ),
     )
-    print(f"sorted_wholesale_catalog: {sorted_wholesale_catalog}")
+    print(f"sorted_wholesale_catalog: {sorted_wholesale_catalog} ")
 
     current_plan = []
     current_plan_cost = 0
