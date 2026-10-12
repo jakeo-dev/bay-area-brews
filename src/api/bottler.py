@@ -145,7 +145,7 @@ def create_bottle_plan(
             (
                 20
                 if tuple(potion_type) not in bottled_types
-                else int(remaining_capacity / 1.5)
+                else int(float(remaining_capacity) / 1.5)
             ),
         )
 
