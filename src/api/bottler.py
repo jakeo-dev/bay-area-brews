@@ -130,8 +130,8 @@ def create_bottle_plan(
 
     shuffled_mixtures.sort(
         key=lambda potion_type: (
-            -max(potion_type),
             -potion_type[0],
+            -max(potion_type),
         )
     )
     print(f"shuffled_mixtures: {shuffled_mixtures}")
