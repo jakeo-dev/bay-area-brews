@@ -105,7 +105,7 @@ def get_capacity_plan():
     #     total_ml * 10 > current_ml_limit * 9 and total_gold >= 7500
     # )
     new_potion_capacity = int(
-        total_potions * 10 > current_potion_limit * 8
+        total_potions * 10 > current_potion_limit * 5
         and total_gold >= 15000
         and additional_potion_capacity < 2
     )
