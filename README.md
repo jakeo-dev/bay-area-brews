@@ -1,6 +1,6 @@
 # Bay Area Brews
 
-Bay Area Brews was my potion shop for Professor Pierce's Potion Exchange project in CSC 3660. It ended up in 9th place (out of 15-20 total shops), so... not that great, but I think it's still interesting to look back at my strategies for buying barrels and selling potions.
+Bay Area Brews was my potion shop for Professor Pierce's Potion Exchange project in CSC 3660 Intro to Databases. It ended up in 9th place (but peaked at 4th place (out of 15-20 total shops)), so... not that great, but I think it's still interesting to look back at my strategies for buying barrels and selling potions.
 
 You can see the data I collected in the `DATABASE-BACKUP` directory.
 
