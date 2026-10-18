@@ -1,13 +1,19 @@
+# Bay Area Brews
+
+Bay Area Brews was my potion shop for Professor Pierce's Potion Exchange project in CSC 3660. It ended up in 9th place (out of 15-20 total shops), so... not that great, but I think it's still interesting to look back at my strategies for buying barrels and selling potions.
+
+You can see the data I collected in the `DATABASE-BACKUP` directory.
+
 # Central Coast Cauldrons
 
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.103.0-009688.svg?&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com/) [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 
 Central Coast Cauldrons is a stubbed-out API designed as a starting point for learning how to build backend services that integrate with a persistence layer. You will progressively develop your own version of the API and integrate it with an increasingly sophisticated database backend. When you register your backend at the [Potion Exchange](https://potion-exchange.vercel.app/), simulated customers will shop at your store using your API.
 
 The application is set in a simulated fantasy RPG world where adventurers seek to buy potions. Your shop is one of many in this world, offering a variety of potions with over 100,000 possible combinations.
 
 ## Table of Contents
+
 - [Game Mechanics](#game-mechanics)
 - [Getting Started](#getting-started)
 - [Local Development & Testing](#local-development--testing)
@@ -64,7 +70,6 @@ Follow these steps to set up your potion shop:
      - Avoid special characters in the password to prevent parsing issues.
    - Save this connection string for the next step.
 
-
 3. **Deploy on Render**
    - Sign up at [Render](https://render.com/).
    - Click "New +" and select "Blueprint."
@@ -94,8 +99,9 @@ Follow these steps to set up your potion shop:
 To run your server locally:
 
 1. **Install Dependencies**
-    - [Install uv](https://docs.astral.sh/uv/getting-started/installation/)
-    - Run:
+   - [Install uv](https://docs.astral.sh/uv/getting-started/installation/)
+   - Run:
+
    ```bash
    uv sync
    ```
@@ -106,14 +112,15 @@ To run your server locally:
      ```bash
      docker run --name mypostgres -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 -d postgres:latest
      ```
-    - In the future, you can restart the container by just running:
-      ```bash
-      docker start mypostgres
-      ```
-    - Upgrade the database to your latest schema:
-      ```bash
-      uv run alembic upgrade head
-      ```
+   - In the future, you can restart the container by just running:
+     ```bash
+     docker start mypostgres
+     ```
+   - Upgrade the database to your latest schema:
+
+     ```bash
+     uv run alembic upgrade head
+     ```
 
    - Download and install [TablePlus](https://tableplus.com/) or [DBeaver](https://dbeaver.io/). Any SQL editor compatible with postgres will work.
    - Create a new connection with the following connection string:
@@ -122,8 +129,8 @@ To run your server locally:
      ```
    - This will let you query your database and debug issues.
 
-
 3. **Run the Server**
+
    ```bash
    uv run main.py
    ```
@@ -138,4 +145,3 @@ To run your server locally:
      ```sh
      uv run pytest
      ```
-
