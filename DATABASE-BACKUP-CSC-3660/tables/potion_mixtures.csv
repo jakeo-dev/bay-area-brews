@@ -1,0 +1,26 @@
+id,name,red_amount,green_amount,blue_amount,dark_amount,price,sku
+1,Red potion,100,0,0,0,60,RED_POTION_0
+2,Green potion,0,100,0,0,60,GREEN_POTION_0
+3,Blue potion,0,0,100,0,60,BLUE_POTION_0
+4,Dark potion,0,0,0,100,120,DARK_POTION_0
+5,Yellow potion,50,50,0,0,50,YELLOW_POTION_0
+6,Purple potion,50,0,50,0,50,PURPLE_POTION_0
+7,Cyan potion,0,50,50,0,50,CYAN_POTION_0
+8,White potion,33,34,33,0,50,WHITE_POTION_0
+9,Orange juice,75,25,0,0,50,ORANGE_JUICE_0
+10,Lime juice,25,75,0,0,50,LIME_JUICE_0
+11,Cherry juice,75,0,25,0,50,CHERRY_JUICE_0
+12,Blueberry juice,25,0,75,0,55,BLUEBERRY_JUICE_0
+13,Mint juice,0,75,25,0,45,MINT_JUICE_0
+14,Grape juice,0,25,75,0,35,GRAPE_JUICE_0
+15,Gray potion,25,25,25,25,75,GRAY_POTION_0
+16,Pomegranate soda,50,25,25,0,55,POMEGRANATE_SODA_0
+17,Kale soda,25,50,25,0,50,KALE_SODA_0
+18,Fig soda,25,25,50,0,50,FIG_SODA_0
+19,Apple cider,60,15,15,10,70,APPLE_CIDER_0
+20,Kiwi cider,15,60,15,10,70,KIWI_CIDER_0
+21,Huckleberry cider,15,15,60,10,70,HUCKLEBERRY_CIDER_0
+23,Diluted red potion,94,3,3,0,55,DIL_RED_POTION_0
+24,Diluted green potion,3,94,3,0,55,DIL_GREEN_POTION_0
+25,Diluted blue potion,3,3,94,0,55,DIL_BLUE_POTION_0
+26,Raspberry juice,80,10,10,0,50,RASPBERRY_JUICE_0
